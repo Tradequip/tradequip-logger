@@ -41,7 +41,7 @@ html,body{height:100%;background:var(--black);color:var(--text);font-family:var(
 .ni{display:flex;align-items:center;gap:8px;padding:9px 18px;cursor:pointer;transition:all .14s;font-size:13px;font-weight:500;color:var(--soft);border-left:3px solid transparent;}
 .ni:hover{color:var(--text);background:rgba(255,255,255,.03);}
 .ni.on{color:var(--orange);border-left-color:var(--orange);background:var(--og);}
-.content{flex:1;padding:24px;overflow-y:auto;min-width:0;}
+.content{flex:1;padding:24px;overflow-y:auto;min-width:0;-webkit-overflow-scrolling:touch;}
 /* CARDS / FORMS */
 .card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--rl);padding:18px;}
 .ct{font-family:var(--fh);font-size:16px;font-weight:700;color:#fff;margin-bottom:13px;}
@@ -134,7 +134,7 @@ select option{background:var(--dark);}
 .dr{background:var(--red);}
 .dm{background:var(--muted);}
 /* CAMERA / MEDIA */
-.cam-wrap{position:relative;border-radius:var(--rl);overflow:hidden;background:#000;aspect-ratio:16/9;margin-bottom:10px;}
+.cam-wrap{position:relative;border-radius:var(--rl);overflow:hidden;background:#000;aspect-ratio:4/3;max-height:340px;margin-bottom:10px;}
 .cam-wrap video{width:100%;height:100%;object-fit:cover;}
 .cam-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:14px;gap:10px;background:linear-gradient(transparent 60%,rgba(0,0,0,.6));}
 .cam-btn{width:58px;height:58px;border-radius:50%;border:3px solid #fff;background:rgba(255,255,255,.15);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;transition:all .15s;}
@@ -384,11 +384,11 @@ select option{background:var(--dark);}
       <div id="camPanel">
         <div class="cam-wrap" id="camWrap">
           <video id="camVideo" autoplay playsinline muted></video>
-          <div class="cam-overlay" id="camOverlay">
+          <div class="cam-overlay" id="camOverlay" style="display:none">
             <div class="cam-row">
-              <button class="cam-btn" id="switchCamBtn" onclick="switchCam()" title="Switch camera">🔄</button>
-              <button class="cam-btn" style="width:68px;height:68px;background:rgba(255,255,255,.2);border-width:4px" id="capBtn" onclick="capture()">📸</button>
-              <button class="cam-btn" id="recBtn" onclick="toggleVideo()" title="Record video">⏺️</button>
+              <button class="cam-btn" onclick="switchCam()" title="Flip">🔄</button>
+              <button class="cam-btn" style="width:68px;height:68px;background:rgba(255,255,255,.2);border-width:4px" onclick="capture()">📸</button>
+              <button class="cam-btn" id="recBtn" onclick="toggleVideo()">⏺️</button>
             </div>
           </div>
           <div id="camStart" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:var(--dark);border-radius:var(--rl)">
@@ -397,7 +397,18 @@ select option{background:var(--dark);}
             <div style="font-size:12px;color:var(--soft)">Allow camera access when prompted</div>
           </div>
         </div>
-        <div id="recIndicator" style="display:none;color:var(--red);font-size:13px;font-weight:600;text-align:center;margin-bottom:6px">🔴 Recording…</div>
+        <!-- Always visible controls BELOW the camera so you can scroll to them -->
+        <div id="camControls" style="display:none;margin-top:10px;">
+          <div id="recIndicator" style="display:none;background:rgba(232,70,90,.15);border:1px solid var(--red);border-radius:var(--r);padding:8px 14px;color:var(--red);font-size:13px;font-weight:600;text-align:center;margin-bottom:8px;">
+            🔴 Recording — tap STOP to finish
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+            <button class="btn bs" style="justify-content:center" onclick="switchCam()">🔄 Flip</button>
+            <button class="btn bp" style="justify-content:center;font-size:18px" onclick="capture()">📸 Photo</button>
+            <button class="btn bs" style="justify-content:center" id="recBtnBottom" onclick="toggleVideo()">⏺️ Video</button>
+          </div>
+          <button class="btn br" style="width:100%;justify-content:center;margin-top:8px" onclick="stopCam()">✕ Close Camera</button>
+        </div>
       </div>
       <!-- Upload panel -->
       <div id="uploadPanel" style="display:none">
@@ -419,12 +430,17 @@ select option{background:var(--dark);}
     <div class="card">
       <div class="ct">🎙️ Voice Notes</div>
       <div style="display:flex;flex-direction:column;align-items:center;gap:11px;padding:14px">
+        <!-- Single large button that changes state clearly -->
         <button class="voice-btn" id="voiceBtn" onclick="toggleRec()">🎙️</button>
-        <div id="voiceSt" style="font-size:13px;color:var(--soft)">Tap to dictate a note</div>
+        <div id="voiceSt" style="font-size:13px;color:var(--soft);text-align:center">Tap microphone to dictate a note</div>
+        <!-- Always visible STOP button when recording - can't get stuck -->
+        <button id="voiceStopBtn" onclick="forceStopRec()" style="display:none;width:100%;padding:12px;background:var(--red);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:600;cursor:pointer;">
+          ⏹️ Tap here to STOP recording
+        </button>
         <div id="voiceTx" style="display:none;background:var(--dark);border:1px solid var(--bdr);border-radius:var(--r);padding:11px;font-size:14px;min-height:50px;width:100%"></div>
-        <div id="voiceActs" style="display:none;gap:8px">
-          <button class="btn bp bsm" onclick="acceptVoice()">✅ Add to Notes</button>
-          <button class="btn bs bsm" onclick="clearVoice()">🗑️ Discard</button>
+        <div id="voiceActs" style="display:none;gap:8px;width:100%">
+          <button class="btn bp bsm" style="flex:1;justify-content:center" onclick="acceptVoice()">✅ Add to Notes</button>
+          <button class="btn bs bsm" style="flex:1;justify-content:center" onclick="clearVoice()">🗑️ Discard</button>
         </div>
       </div>
     </div>
@@ -840,6 +856,23 @@ startAutoGeo();
 buildHistTable();buildTeamTable();buildAdminPage();buildReminders();buildNotif();
 buildPeopleList('all');buildClientList();
 
+// Auto-trigger biometric verification on load — just like iPhone apps do
+// Small delay so the page renders first
+setTimeout(()=>{
+  if(!bioVerified){
+    triggerBio('clockin');
+    // Try WebAuthn silently first — if device supports it, Face ID fires automatically
+    if(window.PublicKeyCredential){
+      PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(avail=>{
+        if(avail){
+          // Automatically start the scan — no button tap needed
+          setTimeout(startScan, 400);
+        }
+      }).catch(()=>{});
+    }
+  }
+},800);
+
 /* ════════════════════════════════════════
    NAV
 ════════════════════════════════════════ */
@@ -1003,12 +1036,26 @@ function setCamTab(tab,el){
 async function startCam(){
   try{
     camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:camFacing},audio:true});
-    const v=document.getElementById('camVideo');v.srcObject=camStream;
+    const v=document.getElementById('camVideo');
+    v.srcObject=camStream;
     document.getElementById('camStart').style.display='none';
     document.getElementById('camOverlay').style.display='flex';
+    document.getElementById('camControls').style.display='block';
   }catch(e){
-    document.getElementById('camStart').innerHTML='<div style="font-size:28px">⚠️</div><div style="font-size:13px;color:var(--soft);text-align:center">Camera access denied.<br>Use Upload Files instead.</div>';
+    document.getElementById('camStart').innerHTML='<div style="font-size:28px">⚠️</div><div style="font-size:13px;color:var(--soft);text-align:center;padding:0 10px">Camera access denied.<br>Use Upload Files tab instead.</div>';
   }
+}
+function stopCam(){
+  if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}
+  if(mediaRec&&mediaRec.state!=='inactive'){mediaRec.stop();}
+  document.getElementById('camVideo').srcObject=null;
+  document.getElementById('camStart').style.display='flex';
+  document.getElementById('camOverlay').style.display='none';
+  document.getElementById('camControls').style.display='none';
+  document.getElementById('recIndicator').style.display='none';
+  document.getElementById('recBtnBottom').textContent='⏺️ Video';
+  document.getElementById('recBtnBottom').style.background='';
+  mediaRec=null;
 }
 async function switchCam(){
   if(camStream){camStream.getTracks().forEach(t=>t.stop());}
@@ -1016,6 +1063,7 @@ async function switchCam(){
   await startCam();
 }
 function capture(){
+  if(!camStream){alert('Start the camera first.');return;}
   const v=document.getElementById('camVideo');
   const c=document.createElement('canvas');c.width=v.videoWidth;c.height=v.videoHeight;
   c.getContext('2d').drawImage(v,0,0);
@@ -1023,28 +1071,43 @@ function capture(){
     const url=URL.createObjectURL(blob);
     mediaFiles.push({type:'image',url,blob,name:'photo-'+Date.now()+'.jpg'});
     renderMediaGrid();
-    // Flash effect
-    const ov=document.getElementById('camOverlay');ov.style.background='rgba(255,255,255,.7)';setTimeout(()=>ov.style.background='',120);
+    // Flash
+    const ov=document.getElementById('camOverlay');
+    ov.style.background='rgba(255,255,255,.6)';
+    setTimeout(()=>ov.style.background='',120);
   },'image/jpeg',0.92);
 }
 function toggleVideo(){
-  const btn=document.getElementById('recBtn');
+  const btn=document.getElementById('recBtnBottom');
   const ind=document.getElementById('recIndicator');
-  if(!mediaRec){
+  if(!camStream){alert('Start the camera first.');return;}
+  if(!mediaRec||mediaRec.state==='inactive'){
+    // START recording
     const chunks=[];
-    mediaRec=new MediaRecorder(camStream);
-    mediaRec.ondataavailable=e=>chunks.push(e.data);
+    try{
+      mediaRec=new MediaRecorder(camStream,{mimeType:'video/webm;codecs=vp8,opus'});
+    }catch(e){
+      mediaRec=new MediaRecorder(camStream);
+    }
+    mediaRec.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data);};
     mediaRec.onstop=()=>{
       const blob=new Blob(chunks,{type:'video/webm'});
       const url=URL.createObjectURL(blob);
       mediaFiles.push({type:'video',url,blob,name:'video-'+Date.now()+'.webm'});
       renderMediaGrid();
       mediaRec=null;
+      btn.textContent='⏺️ Video';
+      btn.style.background='';
+      ind.style.display='none';
     };
-    mediaRec.start();
-    btn.textContent='⏹️';ind.style.display='block';
+    mediaRec.start(1000);
+    btn.textContent='⏹️ STOP';
+    btn.style.background='var(--red)';
+    btn.style.color='#fff';
+    ind.style.display='block';
   } else {
-    mediaRec.stop();btn.textContent='⏺️';ind.style.display='none';
+    // STOP recording
+    mediaRec.stop();
   }
 }
 
@@ -1180,9 +1243,53 @@ function checkPin(){
    VOICE
 ════════════════════════════════════════ */
 function toggleRec(){
-  if(!reco){document.getElementById('voiceTx').style.display='';document.getElementById('voiceTx').textContent='Voice recognition not supported — type instead.';document.getElementById('voiceActs').style.display='flex';return;}
-  if(!recording){recording=true;document.getElementById('voiceBtn').classList.add('rec');document.getElementById('voiceSt').textContent='🔴 Recording… tap to stop';document.getElementById('voiceTx').style.display='none';reco.continuous=true;reco.interimResults=true;reco.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;voiceText=t;document.getElementById('voiceTx').style.display='';document.getElementById('voiceTx').textContent=t;};reco.start();}
-  else{recording=false;reco.stop();document.getElementById('voiceBtn').classList.remove('rec');document.getElementById('voiceSt').textContent='Recording stopped';document.getElementById('voiceActs').style.display='flex';}
+  if(!reco){
+    document.getElementById('voiceTx').style.display='';
+    document.getElementById('voiceTx').textContent='Voice recognition not supported on this device. Type your note instead.';
+    document.getElementById('voiceActs').style.display='flex';
+    return;
+  }
+  if(!recording){
+    // START
+    recording=true;
+    voiceText='';
+    document.getElementById('voiceBtn').classList.add('rec');
+    document.getElementById('voiceBtn').textContent='🔴';
+    document.getElementById('voiceSt').textContent='Listening… speak now';
+    document.getElementById('voiceStopBtn').style.display='block';
+    document.getElementById('voiceTx').style.display='';
+    document.getElementById('voiceTx').textContent='…';
+    document.getElementById('voiceActs').style.display='none';
+    reco.continuous=true;
+    reco.interimResults=true;
+    reco.onresult=e=>{
+      let t='';
+      for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;
+      voiceText=t;
+      document.getElementById('voiceTx').textContent=t||'…';
+    };
+    reco.onerror=()=>forceStopRec();
+    reco.onend=()=>{if(recording)forceStopRec();};
+    try{reco.start();}catch(e){forceStopRec();}
+  } else {
+    forceStopRec();
+  }
+}
+function forceStopRec(){
+  recording=false;
+  try{reco.stop();}catch(e){}
+  document.getElementById('voiceBtn').classList.remove('rec');
+  document.getElementById('voiceBtn').textContent='🎙️';
+  document.getElementById('voiceSt').textContent='Recording stopped — review below';
+  document.getElementById('voiceStopBtn').style.display='none';
+  if(voiceText){
+    document.getElementById('voiceTx').textContent=voiceText;
+    document.getElementById('voiceTx').style.display='';
+    document.getElementById('voiceActs').style.display='flex';
+  } else {
+    document.getElementById('voiceSt').textContent='Nothing recorded — tap to try again';
+    document.getElementById('voiceTx').style.display='none';
+  }
 }
 function acceptVoice(){const t=document.getElementById('taskDesc');t.value=(t.value+'\n'+voiceText).trim();clearVoice();}
 function clearVoice(){voiceText='';document.getElementById('voiceTx').style.display='none';document.getElementById('voiceActs').style.display='none';document.getElementById('voiceSt').textContent='Tap to dictate a note';}
