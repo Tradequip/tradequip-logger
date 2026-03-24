@@ -4,10 +4,10 @@
   "description": "Daily activity logging for onsite workers",
   "start_url": "/tradequip-logger/",
   "scope": "/tradequip-logger/",
-  "display": "standalone",
+  "display": "browser",
   "orientation": "portrait",
-  "background_color": "#0d0f10",
-  "theme_color": "#f47c1c",
+  "background_color": "#13181c",
+  "theme_color": "#13181c",
   "icons": [
     {
       "src": "icons/icon-192.png",
