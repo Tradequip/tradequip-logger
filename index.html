@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>TradeQuip – Daily Activity Logger</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --black:#0d0f10;--dark:#13181c;--card:#1a2128;--bdr:#253040;
+  --muted:#3a4a5c;--text:#c8d8e8;--soft:#8099b2;
+  --orange:#f47c1c;--og:rgba(244,124,28,.16);--od:#c4620e;
+  --green:#27c46b;--red:#e8465a;--blue:#3b9eff;--yellow:#f5c842;--purple:#a855f7;
+  --fh:'Rajdhani',sans-serif;--fb:'DM Sans',sans-serif;
+  --r:10px;--rl:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;background:var(--black);color:var(--text);font-family:var(--fb);font-size:15px;}
+/* LAYOUT */
+.shell{display:flex;min-height:100vh;flex-direction:column;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 22px;height:58px;background:var(--dark);border-bottom:1px solid var(--bdr);position:sticky;top:0;z-index:300;}
+.logo{display:flex;align-items:center;gap:8px;}
+.lmark{width:32px;height:32px;border-radius:8px;background:var(--orange);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:700;font-size:16px;color:#fff;box-shadow:0 0 14px var(--og);}
+.ltxt{font-family:var(--fh);font-size:19px;font-weight:700;letter-spacing:1px;color:#fff;}
+.ltxt span{color:var(--orange);}
+.tbr{display:flex;align-items:center;gap:9px;}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:99px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--bdr);color:var(--soft);transition:all .18s;}
+.pill:hover{border-color:var(--orange);color:var(--orange);}
+.av{width:32px;height:32px;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:700;font-size:12px;color:#fff;cursor:pointer;position:relative;flex-shrink:0;}
+.av-v{position:absolute;bottom:-2px;right:-2px;width:12px;height:12px;border-radius:50%;background:var(--green);border:2px solid var(--dark);font-size:6px;display:flex;align-items:center;justify-content:center;}
+.main{display:flex;flex:1;}
+.sb{width:210px;background:var(--dark);border-right:1px solid var(--bdr);padding:16px 0;display:flex;flex-direction:column;position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto;flex-shrink:0;}
+.ns{padding:11px 18px 3px;font-size:10px;letter-spacing:1.3px;text-transform:uppercase;color:var(--muted);font-weight:700;}
+.ni{display:flex;align-items:center;gap:8px;padding:9px 18px;cursor:pointer;transition:all .14s;font-size:13px;font-weight:500;color:var(--soft);border-left:3px solid transparent;}
+.ni:hover{color:var(--text);background:rgba(255,255,255,.03);}
+.ni.on{color:var(--orange);border-left-color:var(--orange);background:var(--og);}
+.content{flex:1;padding:24px;overflow-y:auto;min-width:0;}
+/* CARDS / FORMS */
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--rl);padding:18px;}
+.ct{font-family:var(--fh);font-size:16px;font-weight:700;color:#fff;margin-bottom:13px;}
+.pt{font-family:var(--fh);font-size:22px;font-weight:700;color:#fff;margin-bottom:3px;}
+.ps{font-size:13px;color:var(--soft);margin-bottom:20px;}
+.fg{display:flex;flex-direction:column;gap:5px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:13px;}
+.gf{grid-column:1/-1;}
+label{font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--soft);}
+input,select,textarea{background:var(--dark);border:1px solid var(--bdr);border-radius:var(--r);color:var(--text);font-family:var(--fb);font-size:14px;padding:8px 12px;outline:none;transition:border .14s;width:100%;}
+input:focus,select:focus,textarea:focus{border-color:var(--orange);}
+textarea{resize:vertical;min-height:70px;}
+select option{background:var(--dark);}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 17px;border-radius:var(--r);font-family:var(--fb);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .14s;white-space:nowrap;}
+.bp{background:var(--orange);color:#fff;}.bp:hover{background:var(--od);}
+.bs{background:transparent;border:1px solid var(--bdr);color:var(--text);}.bs:hover{border-color:var(--orange);color:var(--orange);}
+.bg{background:var(--green);color:#fff;}
+.br{background:var(--red);color:#fff;}
+.bsm{padding:5px 12px;font-size:12px;}
+.bxs{padding:3px 9px;font-size:11px;}
+/* BADGES */
+.bdg{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;}
+.bg-g{background:rgba(39,196,107,.13);color:var(--green);}
+.bg-r{background:rgba(232,70,90,.13);color:var(--red);}
+.bg-o{background:rgba(244,124,28,.13);color:var(--orange);}
+.bg-b{background:rgba(59,158,255,.13);color:var(--blue);}
+.bg-p{background:rgba(168,85,247,.13);color:var(--purple);}
+.bg-m{background:rgba(58,74,92,.35);color:var(--soft);}
+/* ALERTS */
+.al{padding:10px 14px;border-radius:var(--r);font-size:13px;font-weight:500;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.al-w{background:rgba(245,200,66,.09);border:1px solid rgba(245,200,66,.28);color:var(--yellow);}
+.al-ok{background:rgba(39,196,107,.09);border:1px solid rgba(39,196,107,.28);color:var(--green);}
+.al-i{background:rgba(59,158,255,.09);border:1px solid rgba(59,158,255,.28);color:var(--blue);}
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:18px;}
+.stat{background:var(--card);border:1px solid var(--bdr);border-radius:var(--rl);padding:14px 16px;}
+.sv{font-family:var(--fh);font-size:26px;font-weight:700;}
+.sl{font-size:12px;color:var(--soft);margin-top:2px;}
+.cg{color:var(--green);}.cr{color:var(--red);}.co{color:var(--orange);}.cb{color:var(--blue);}.cp{color:var(--purple);}
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;padding:8px 11px;color:var(--soft);font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.4px;border-bottom:1px solid var(--bdr);}
+.tbl td{padding:10px 11px;border-bottom:1px solid rgba(37,48,64,.5);}
+.tbl tr:hover td{background:rgba(255,255,255,.02);}
+.tbl tr:last-child td{border-bottom:none;}
+/* TOGGLE */
+.tr{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--bdr);}
+.tr:last-child{border-bottom:none;}
+.tn{font-weight:600;font-size:14px;color:var(--text);}
+.td{font-size:12px;color:var(--soft);margin-top:2px;}
+.sw{position:relative;width:42px;height:22px;flex-shrink:0;margin-left:12px;}
+.sw input{opacity:0;width:0;height:0;}
+.sws{position:absolute;inset:0;background:var(--muted);border-radius:99px;cursor:pointer;transition:.25s;}
+.sws:before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.25s;}
+.sw input:checked+.sws{background:var(--orange);}
+.sw input:checked+.sws:before{transform:translateX(20px);}
+/* GEO AUTO PANEL */
+.geo-panel{background:var(--card);border:1px solid var(--bdr);border-radius:var(--rl);margin-bottom:18px;overflow:hidden;}
+.geo-hdr{padding:14px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--bdr);}
+.geo-ico{width:44px;height:44px;border-radius:50%;background:var(--dark);border:2px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;transition:all .3s;}
+.geo-ico.ok{border-color:var(--green);background:rgba(39,196,107,.1);box-shadow:0 0 12px rgba(39,196,107,.2);}
+.geo-ico.bad{border-color:var(--red);background:rgba(232,70,90,.1);}
+.geo-ico.spin{animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.geo-body{padding:14px 18px;}
+.dist-bar{height:6px;border-radius:99px;background:var(--dark);border:1px solid var(--bdr);overflow:hidden;margin:8px 0 4px;}
+.dist-fill{height:100%;border-radius:99px;transition:width .5s,background .3s;}
+.ck-wrap{display:grid;grid-template-columns:1fr 1fr;border-radius:var(--rl);overflow:hidden;border:1px solid var(--bdr);margin-top:12px;}
+.ck-btn{display:flex;flex-direction:column;align-items:center;padding:14px 8px;gap:3px;background:var(--dark);border:none;cursor:pointer;transition:all .2s;position:relative;}
+.ck-btn+.ck-btn{border-left:1px solid var(--bdr);}
+.ck-btn:disabled{opacity:.35;cursor:not-allowed;}
+.ck-btn:not(:disabled).cki:hover{background:rgba(39,196,107,.1);}
+.ck-btn:not(:disabled).cko:hover{background:rgba(232,70,90,.1);}
+.ck-btn.din{background:rgba(39,196,107,.1)!important;}
+.ck-btn.dout{background:rgba(232,70,90,.08)!important;}
+.ck-lk{position:absolute;top:5px;right:7px;font-size:10px;opacity:.45;}
+.ck-ico{font-size:22px;}
+.ck-lb{font-family:var(--fh);font-size:14px;font-weight:700;color:#fff;}
+.ck-sb{font-size:11px;color:var(--soft);text-align:center;}
+.geo-log{margin-top:11px;display:flex;flex-direction:column;gap:5px;}
+.ge{display:flex;align-items:center;gap:9px;padding:7px 10px;background:var(--dark);border:1px solid var(--bdr);border-radius:var(--r);font-size:12px;}
+.gdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.gtm{font-family:var(--fh);font-weight:600;font-size:13px;white-space:nowrap;}
+.gdsc{color:var(--soft);flex:1;}
+.trow2{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px;padding-top:11px;border-top:1px solid var(--bdr);}
+.tbdg{display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--dark);border:1px solid var(--bdr);border-radius:var(--r);font-family:var(--fh);font-size:13px;font-weight:600;}
+.dot{width:7px;height:7px;border-radius:50%;}
+.dg{background:var(--green);box-shadow:0 0 5px var(--green);}
+.dr{background:var(--red);}
+.dm{background:var(--muted);}
+/* CAMERA / MEDIA */
+.cam-wrap{position:relative;border-radius:var(--rl);overflow:hidden;background:#000;aspect-ratio:16/9;margin-bottom:10px;}
+.cam-wrap video{width:100%;height:100%;object-fit:cover;}
+.cam-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:14px;gap:10px;background:linear-gradient(transparent 60%,rgba(0,0,0,.6));}
+.cam-btn{width:58px;height:58px;border-radius:50%;border:3px solid #fff;background:rgba(255,255,255,.15);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;transition:all .15s;}
+.cam-btn:hover{background:rgba(255,255,255,.3);}
+.cam-row{display:flex;gap:12px;align-items:center;}
+.cam-tab{display:flex;border-radius:99px;overflow:hidden;border:1px solid var(--bdr);margin-bottom:10px;}
+.cam-tab button{flex:1;padding:7px 14px;font-size:12px;font-weight:600;background:var(--dark);border:none;color:var(--soft);cursor:pointer;transition:all .15s;}
+.cam-tab button.on{background:var(--orange);color:#fff;}
+.media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px;margin-top:10px;}
+.mt{aspect-ratio:1;border-radius:var(--r);overflow:hidden;position:relative;background:var(--dark);border:1px solid var(--bdr);cursor:pointer;}
+.mt img,.mt video{width:100%;height:100%;object-fit:cover;}
+.mt-del{position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:rgba(232,70,90,.9);color:#fff;border:none;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;}
+.mt-tag{position:absolute;bottom:2px;left:3px;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700;background:rgba(0,0,0,.75);color:#fff;}
+/* BIO OVERLAY */
+.bio-ovl{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:600;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);}
+.bio-box{background:var(--card);border:1px solid var(--bdr);border-radius:22px;padding:30px 28px;text-align:center;max-width:340px;width:92%;}
+.bio-title{font-family:var(--fh);font-size:20px;font-weight:700;color:#fff;margin-bottom:4px;}
+.bio-sub{font-size:13px;color:var(--soft);margin-bottom:20px;line-height:1.5;}
+.bio-tabs{display:flex;gap:5px;justify-content:center;margin-bottom:17px;}
+.bio-tab{padding:5px 13px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--bdr);color:var(--soft);transition:all .18s;}
+.bio-tab.on{background:var(--og);border-color:var(--orange);color:var(--orange);}
+.fr{width:128px;height:128px;border-radius:50%;margin:0 auto 18px;position:relative;}
+.fr-o{position:absolute;inset:0;border-radius:50%;border:3px solid var(--bdr);}
+.fr-s{position:absolute;inset:0;border-radius:50%;border:3px solid transparent;border-top-color:var(--orange);}
+.fr-s.sp{animation:spin 1s linear infinite;}
+.fr-s.ok{border-color:var(--green);animation:none;}
+.fr-s.fail{border-color:var(--red);animation:none;}
+.fi{position:absolute;inset:9px;border-radius:50%;background:var(--dark);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;}
+.fe{font-size:38px;}
+.fdots{display:flex;gap:4px;}
+.fd{width:6px;height:6px;border-radius:50%;border:2px solid var(--bdr);transition:all .2s;}
+.fd.lit{background:var(--orange);border-color:var(--orange);}
+.fd.ok{background:var(--green);border-color:var(--green);}
+.fd.err{background:var(--red);border-color:var(--red);}
+.fc{position:absolute;width:18px;height:18px;}
+.fc.tl{top:0;left:0;border-top:3px solid var(--orange);border-left:3px solid var(--orange);}
+.fc.tr{top:0;right:0;border-top:3px solid var(--orange);border-right:3px solid var(--orange);}
+.fc.bl{bottom:0;left:0;border-bottom:3px solid var(--orange);border-left:3px solid var(--orange);}
+.fc.br{bottom:0;right:0;border-bottom:3px solid var(--orange);border-right:3px solid var(--orange);}
+.bst{font-size:13px;font-weight:600;min-height:18px;margin-bottom:12px;}
+.pin-disp{display:flex;gap:7px;justify-content:center;margin-bottom:12px;}
+.pin-dot{width:11px;height:11px;border-radius:50%;border:2px solid var(--bdr);transition:all .18s;}
+.pin-dot.filled{background:var(--orange);border-color:var(--orange);}
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px;}
+.pk{background:var(--dark);border:1px solid var(--bdr);border-radius:var(--r);padding:11px;font-family:var(--fh);font-size:18px;font-weight:600;cursor:pointer;transition:all .14s;color:var(--text);}
+.pk:hover{background:var(--og);border-color:var(--orange);}
+/* MODAL */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;}
+.mbox{background:var(--card);border:1px solid var(--bdr);border-radius:var(--rl);width:100%;max-width:520px;max-height:90vh;overflow-y:auto;}
+.mhdr{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--bdr);}
+.mhdr-t{font-family:var(--fh);font-size:18px;font-weight:700;color:#fff;}
+.mclose{background:none;border:none;color:var(--soft);font-size:20px;cursor:pointer;line-height:1;padding:2px 6px;}
+.mclose:hover{color:var(--text);}
+.mbody{padding:20px;}
+/* MEDIA VIEWER */
+.media-viewer{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:700;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.mv-img{max-width:90vw;max-height:80vh;border-radius:var(--rl);object-fit:contain;}
+.mv-vid{max-width:90vw;max-height:80vh;border-radius:var(--rl);}
+.mv-close{position:absolute;top:18px;right:22px;background:rgba(255,255,255,.1);border:none;color:#fff;font-size:22px;cursor:pointer;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.mv-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.1);border:none;color:#fff;font-size:22px;cursor:pointer;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.mv-nav.prev{left:16px;}.mv-nav.next{right:16px;}
+.mv-caption{position:absolute;bottom:20px;color:rgba(255,255,255,.7);font-size:13px;}
+/* BOTTOM NAV */
+.bnav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:300;background:var(--dark);border-top:1px solid var(--bdr);padding-bottom:env(safe-area-inset-bottom,0);}
+.bnav-inner{display:flex;}
+.bn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px 6px;gap:3px;cursor:pointer;color:var(--muted);border:none;background:none;transition:all .14s;}
+.bn.on{color:var(--orange);}
+.bn:active{background:rgba(255,255,255,.04);}
+.bni{font-size:18px;line-height:1;}
+.bnl{font-size:10px;font-weight:600;}
+/* VOICE */
+.voice-btn{width:58px;height:58px;border-radius:50%;background:var(--orange);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:23px;transition:all .2s;}
+.voice-btn.rec{animation:pulse 1.1s infinite;}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(244,124,28,.5);}70%{box-shadow:0 0 0 14px rgba(244,124,28,0);}100%{box-shadow:0 0 0 0 rgba(244,124,28,0);}}
+/* MISC */
+.sec{margin-bottom:18px;}
+.fb{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+.fb-start{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.ovl{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:500;display:flex;align-items:center;justify-content:center;}
+.obox{background:var(--card);border:1px solid var(--bdr);border-radius:var(--rl);padding:30px;text-align:center;max-width:340px;width:90%;}
+.tabs{display:flex;border-bottom:1px solid var(--bdr);margin-bottom:18px;}
+.tab{padding:8px 15px;font-size:13px;font-weight:600;cursor:pointer;color:var(--soft);border-bottom:2px solid transparent;transition:all .14s;}
+.tab.on{color:var(--orange);border-bottom-color:var(--orange);}
+.worker-card{background:var(--dark);border:1px solid var(--bdr);border-radius:var(--r);padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+.wc-av{width:36px;height:36px;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:14px;font-weight:700;color:#fff;flex-shrink:0;}
+.wc-info{flex:1;}
+.wc-name{font-weight:600;font-size:14px;color:var(--text);}
+.wc-meta{font-size:12px;color:var(--soft);}
+.wc-acts{display:flex;gap:6px;}
+.buddy-alert{background:rgba(232,70,90,.07);border:1px solid rgba(232,70,90,.22);border-radius:var(--r);padding:10px 13px;margin-bottom:8px;}
+.buddy-name{font-weight:700;font-size:13px;color:var(--text);}
+.buddy-reason{font-size:12px;color:var(--red);margin-top:2px;}
+.auth-bar-row{display:flex;align-items:center;gap:9px;margin-bottom:8px;}
+.auth-bar-label{font-size:12px;font-weight:600;width:74px;color:var(--text);}
+.auth-bar-bg{flex:1;height:7px;background:var(--dark);border-radius:99px;overflow:hidden;border:1px solid var(--bdr);}
+.auth-bar-fill{height:100%;border-radius:99px;}
+.auth-bar-val{font-size:12px;font-weight:700;width:28px;text-align:right;}
+.gps-row{display:flex;align-items:center;gap:9px;padding:7px 10px;background:var(--dark);border:1px solid var(--bdr);border-radius:var(--r);font-size:12px;margin-bottom:5px;}
+.live-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bdr);font-size:13px;}
+.live-row:last-child{border-bottom:none;}
+.ldot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);display:inline-block;margin-right:5px;}
+.csv-toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:9px 20px;border-radius:99px;font-size:13px;font-weight:700;z-index:400;opacity:0;transition:opacity .3s;pointer-events:none;}
+.csv-toast.show{opacity:1;}
+/* RESPONSIVE */
+@media(max-width:900px){
+  .sb{display:none;}
+  .stats{grid-template-columns:1fr 1fr;}
+  .g2{grid-template-columns:1fr;}
+  .bnav{display:block;}
+  .main{padding-bottom:66px;}
+}
+@media(max-width:560px){
+  .topbar{padding:0 12px;height:52px;}
+  .ltxt{font-size:16px;}
+  .pill:first-child{display:none;}
+  .content{padding:12px 10px;}
+  .pt{font-size:18px;}
+  .stats{grid-template-columns:1fr 1fr;}
+  .sv{font-size:22px;}
+  .tbl th:nth-child(n+5),.tbl td:nth-child(n+5){display:none;}
+  .bio-box{padding:24px 16px;}
+  .fr{width:110px;height:110px;}
+}
+@media(max-width:380px){.stats{grid-template-columns:1fr;}.bnl{display:none;}.bn{padding:10px 4px;}}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<header class="topbar">
+  <div class="logo"><div class="lmark">TQ</div><div class="ltxt">Trade<span>Quip</span></div></div>
+  <div class="tbr">
+    <span class="pill" id="todayPill"></span>
+    <span class="pill" onclick="showNotif()">🔔 <span id="remBadge" style="background:var(--orange);color:#fff;border-radius:99px;padding:1px 6px;font-size:10px;margin-left:2px;">3</span></span>
+    <div class="av" id="userAv" onclick="triggerBio('manual')" title="Tap to verify">
+      <span id="avInit">?</span>
+      <div class="av-v" id="avV" style="display:none;">✓</div>
+    </div>
+  </div>
+</header>
+
+<div class="main">
+<nav class="sb">
+  <div class="ns">My Work</div>
+  <div class="ni on" onclick="navTo('log',this)">📋 Log Activity</div>
+  <div class="ni"    onclick="navTo('history',this)">📅 My History</div>
+  <div class="ns">Management</div>
+  <div class="ni"   onclick="navTo('admin',this)">🛡️ Admin Dashboard</div>
+  <div class="ni"   onclick="navTo('team',this)">👥 Team Overview</div>
+  <div class="ni"   onclick="navTo('reminders',this)">🔔 Reminders</div>
+  <div class="ns">Setup</div>
+  <div class="ni"   onclick="navTo('people',this)">👤 People <span style="background:var(--orange);color:#fff;border-radius:99px;padding:1px 6px;font-size:9px;margin-left:3px;">NEW</span></div>
+  <div class="ni"   onclick="navTo('clients',this)">🏢 Clients &amp; Sites</div>
+  <div class="ni"   onclick="navTo('modules',this)">🧩 Modules</div>
+  <div class="ni"   onclick="navTo('settings',this)">⚙️ Settings</div>
+</nav>
+
+<main class="content">
+
+<!-- ═══ LOG ACTIVITY ═══ -->
+<div id="page-log">
+  <div class="pt">📋 Log Daily Activity</div>
+  <div class="ps">Logged as: <strong id="workerDisplay" style="color:var(--orange)">Not verified</strong></div>
+
+  <div id="bioBanner" class="al al-w" style="cursor:pointer" onclick="triggerBio('clockin')">
+    🔒 <strong>Tap to verify your identity</strong> — Face ID or PIN required. Prevents buddy punching.
+  </div>
+  <div id="bioOkBanner" class="al al-ok" style="display:none">
+    ✅ Verified: <strong id="bioOkName"></strong> · <span id="bioOkMethod"></span> · <span id="bioOkTime"></span>
+  </div>
+
+  <!-- AUTO GEO CLOCK -->
+  <div id="clockWrap" class="sec">
+    <div class="geo-panel">
+      <div class="geo-hdr">
+        <div class="geo-ico" id="geoIco">📍</div>
+        <div style="flex:1">
+          <div style="font-family:var(--fh);font-size:15px;font-weight:700;color:#fff" id="geoTtl">Select a site — GPS tracking will start automatically</div>
+          <div style="font-size:12px;color:var(--soft);margin-top:2px" id="geoSub">Your device will detect when you arrive and leave the site</div>
+        </div>
+        <div id="geoLiveDot" style="display:none;display:flex;align-items:center;gap:5px;font-size:11px;color:var(--green)"><span style="width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);display:inline-block;animation:pulse 2s infinite"></span>Live</div>
+      </div>
+      <div class="geo-body">
+        <!-- Distance indicator -->
+        <div id="distBlock" style="display:none;margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--soft)">Distance from site</span>
+            <span id="distVal" style="font-size:12px;font-weight:700"></span>
+          </div>
+          <div class="dist-bar"><div class="dist-fill" id="distFill" style="width:0%"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:10px;margin-top:3px">
+            <span style="color:var(--green)">✅ On-site (within radius)</span>
+            <span style="color:var(--red)">❌ Too far</span>
+          </div>
+        </div>
+        <!-- Clock buttons — unlocked by geofence arrival -->
+        <div class="ck-wrap">
+          <button class="ck-btn cki" id="btnIn" onclick="doClock('in')" disabled>
+            <span class="ck-lk" id="lkIn">🔒</span>
+            <span class="ck-ico">🟢</span>
+            <span class="ck-lb">Clock In</span>
+            <span class="ck-sb" id="sbIn">Tracking your location…</span>
+          </button>
+          <button class="ck-btn cko" id="btnOut" onclick="doClock('out')" disabled>
+            <span class="ck-lk" id="lkOut">🔒</span>
+            <span class="ck-ico">🔴</span>
+            <span class="ck-lb">Clock Out</span>
+            <span class="ck-sb" id="sbOut">Clock in first</span>
+          </button>
+        </div>
+        <!-- Live event log -->
+        <div class="geo-log" id="geoLog"></div>
+        <!-- Time summary -->
+        <div class="trow2">
+          <div class="tbdg"><div class="dot dm" id="sDot"></div><span id="sLbl">Locating…</span></div>
+          <div class="tbdg">In: <span id="inT" style="color:var(--green)">--:--</span></div>
+          <div class="tbdg">Out: <span id="outT" style="color:var(--red)">--:--</span></div>
+          <div class="tbdg">Duration: <span id="durT" style="color:var(--orange)">--</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SITE DETAILS -->
+  <div class="sec">
+    <div class="card">
+      <div class="ct">📍 Site &amp; Task Details</div>
+      <div class="g2">
+        <div class="fg"><label>Client</label><select id="clientSel" onchange="updateLocs()"><option value="">— Select Client —</option></select></div>
+        <div class="fg"><label>Location / Site</label><select id="locSel" onchange="onSiteChange()"><option value="">— Select Location —</option></select></div>
+        <div class="fg"><label>Task Category</label><select id="taskCat"><option value="">— Select Category —</option><option>Equipment Installation</option><option>Maintenance &amp; Repair</option><option>Inspection &amp; Testing</option><option>Earthworks</option><option>Concrete Work</option><option>Electrical</option><option>Plumbing</option><option>Safety Audit</option><option>Delivery &amp; Materials</option><option>Other</option></select></div>
+        <div class="fg"><label>Worker Type</label><select id="wtype"><option value="employee">Onsite Employee</option><option value="sub">Subcontractor</option></select></div>
+        <div class="fg gf"><label>Task Description</label><textarea id="taskDesc" placeholder="Describe work completed today…"></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAMERA + MEDIA -->
+  <div class="sec" id="mediaSec">
+    <div class="card">
+      <div class="ct">📷 Camera &amp; Media</div>
+      <div class="cam-tab">
+        <button class="on" onclick="setCamTab('camera',this)">📷 Camera</button>
+        <button onclick="setCamTab('upload',this)">📁 Upload Files</button>
+      </div>
+      <!-- Camera panel -->
+      <div id="camPanel">
+        <div class="cam-wrap" id="camWrap">
+          <video id="camVideo" autoplay playsinline muted></video>
+          <div class="cam-overlay" id="camOverlay">
+            <div class="cam-row">
+              <button class="cam-btn" id="switchCamBtn" onclick="switchCam()" title="Switch camera">🔄</button>
+              <button class="cam-btn" style="width:68px;height:68px;background:rgba(255,255,255,.2);border-width:4px" id="capBtn" onclick="capture()">📸</button>
+              <button class="cam-btn" id="recBtn" onclick="toggleVideo()" title="Record video">⏺️</button>
+            </div>
+          </div>
+          <div id="camStart" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:var(--dark);border-radius:var(--rl)">
+            <div style="font-size:36px">📷</div>
+            <button class="btn bp" onclick="startCam()">Start Camera</button>
+            <div style="font-size:12px;color:var(--soft)">Allow camera access when prompted</div>
+          </div>
+        </div>
+        <div id="recIndicator" style="display:none;color:var(--red);font-size:13px;font-weight:600;text-align:center;margin-bottom:6px">🔴 Recording…</div>
+      </div>
+      <!-- Upload panel -->
+      <div id="uploadPanel" style="display:none">
+        <div style="border:2px dashed var(--bdr);border-radius:var(--rl);padding:24px;text-align:center;cursor:pointer;position:relative;transition:all .2s" id="dropZone" ondragover="doDrag(event,true)" ondragleave="doDrag(event,false)" ondrop="doDrop(event)">
+          <input type="file" multiple accept="image/*,video/*" id="fileIn" onchange="handleFiles(this.files)" style="position:absolute;inset:0;opacity:0;cursor:pointer"/>
+          <div style="font-size:26px;margin-bottom:7px">📁</div>
+          <div style="font-weight:600;margin-bottom:3px">Drop photos &amp; videos here</div>
+          <div style="font-size:12px;color:var(--soft)">or click to browse — JPG, PNG, MP4, MOV</div>
+        </div>
+      </div>
+      <!-- Shared media grid -->
+      <div class="media-grid" id="mediaGrid"></div>
+      <div id="noMedia" style="font-size:13px;color:var(--soft);text-align:center;padding:10px 0;display:none">No media added yet</div>
+    </div>
+  </div>
+
+  <!-- VOICE NOTES -->
+  <div class="sec" id="voiceSec">
+    <div class="card">
+      <div class="ct">🎙️ Voice Notes</div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:11px;padding:14px">
+        <button class="voice-btn" id="voiceBtn" onclick="toggleRec()">🎙️</button>
+        <div id="voiceSt" style="font-size:13px;color:var(--soft)">Tap to dictate a note</div>
+        <div id="voiceTx" style="display:none;background:var(--dark);border:1px solid var(--bdr);border-radius:var(--r);padding:11px;font-size:14px;min-height:50px;width:100%"></div>
+        <div id="voiceActs" style="display:none;gap:8px">
+          <button class="btn bp bsm" onclick="acceptVoice()">✅ Add to Notes</button>
+          <button class="btn bs bsm" onclick="clearVoice()">🗑️ Discard</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fb sec">
+    <button class="btn bs" onclick="saveDraft()">💾 Save Draft</button>
+    <button class="btn bp" onclick="submitAct()">✅ Submit Activity Log</button>
+  </div>
+</div>
+
+<!-- ═══ HISTORY ═══ -->
+<div id="page-history" style="display:none">
+  <div class="pt">📅 My Activity History</div>
+  <div class="ps">Submitted logs — tap any row to view photos &amp; videos</div>
+  <div class="tabs">
+    <div class="tab on" onclick="setTab(this)">All</div>
+    <div class="tab" onclick="setTab(this)">This Week</div>
+    <div class="tab" onclick="setTab(this)">This Month</div>
+  </div>
+  <div class="card">
+    <table class="tbl">
+      <thead><tr><th>Date</th><th>Client</th><th>Site</th><th>Task</th><th>In</th><th>Out</th><th>Auth</th><th>GPS</th><th>Media</th><th>Status</th></tr></thead>
+      <tbody id="histTbl"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ ADMIN DASHBOARD ═══ -->
+<div id="page-admin" style="display:none">
+  <div class="fb">
+    <div><div class="pt">🛡️ Admin Dashboard</div><div class="ps">Full visibility across all workers, sites, submissions</div></div>
+    <div class="fb-start">
+      <select id="adminCF" onchange="filterAdmin()" style="font-size:13px;padding:7px 11px;width:auto">
+        <option value="">All Clients</option>
+        <option value="Acme">Acme Construction</option>
+        <option value="Harbour">Harbour Developments</option>
+        <option value="Metro">Metro Infrastructure</option>
+        <option value="Summit">Summit Building Group</option>
+      </select>
+      <button class="btn bp bsm" onclick="exportCSV()">⬇️ Export CSV</button>
+    </div>
+  </div>
+  <div class="stats" style="margin-top:14px">
+    <div class="stat" style="border-left:3px solid var(--green)"><div class="sv cg">11</div><div class="sl">Submitted Today</div></div>
+    <div class="stat" style="border-left:3px solid var(--red)"><div class="sv cr">3</div><div class="sl">Not Submitted</div></div>
+    <div class="stat" style="border-left:3px solid var(--purple)"><div class="sv cp">14</div><div class="sl">Face ID Verified</div></div>
+    <div class="stat" style="border-left:3px solid var(--orange)"><div class="sv co">87.5h</div><div class="sl">Hours On-Site Today</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 300px;gap:14px;margin-bottom:16px" class="admin-grid">
+    <div class="card">
+      <div class="fb" style="margin-bottom:12px">
+        <div class="ct" style="margin-bottom:0">📋 All Activity Logs</div>
+        <div class="fb-start">
+          <select id="sfilt" onchange="filterAdminTbl()" style="font-size:12px;padding:4px 8px;width:auto"><option value="">All Status</option><option value="submitted">Submitted</option><option value="draft">Draft</option><option value="missing">Missing</option></select>
+          <select id="afilt" onchange="filterAdminTbl()" style="font-size:12px;padding:4px 8px;width:auto"><option value="">All Auth</option><option value="Face ID">Face ID</option><option value="PIN">PIN</option><option value="—">None</option></select>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="tbl">
+          <thead><tr><th>Worker</th><th>Type</th><th>Client</th><th>Site</th><th>Auth</th><th>GPS In</th><th>In</th><th>Out</th><th>Duration</th><th>Media</th><th>Status</th><th></th></tr></thead>
+          <tbody id="adminTbl"></tbody>
+        </table>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="card" style="border-color:rgba(232,70,90,.3)">
+        <div class="ct" style="color:var(--red)">🚨 Buddy Punch Alerts</div>
+        <div id="buddyAlerts"></div>
+      </div>
+      <div class="card">
+        <div class="ct">📍 Live On Site</div>
+        <div id="liveStatus"></div>
+      </div>
+      <div class="card">
+        <div class="ct">🔐 Auth Breakdown</div>
+        <div id="authBreak"></div>
+      </div>
+    </div>
+  </div>
+  <div class="card sec">
+    <div class="ct">⏱️ Worker Hours — This Week</div>
+    <div style="overflow-x:auto">
+      <table class="tbl"><thead><tr><th>Worker</th><th>Type</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Total</th><th>Flags</th></tr></thead><tbody id="hrsTbl"></tbody></table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct">📍 GPS Audit Trail — Today</div>
+    <div id="gpsAudit"></div>
+  </div>
+</div>
+
+<!-- ═══ MEDIA SUBMISSIONS ═══ (accessed from history row) -->
+
+<!-- ═══ TEAM ═══ -->
+<div id="page-team" style="display:none">
+  <div class="pt">👥 Team Overview</div>
+  <div class="ps">Today's submission &amp; GPS verification across all workers</div>
+  <div class="stats">
+    <div class="stat"><div class="sv cg">11</div><div class="sl">Submitted</div></div>
+    <div class="stat"><div class="sv cr">3</div><div class="sl">Not Submitted</div></div>
+    <div class="stat"><div class="sv cp">14</div><div class="sl">Face ID Verified</div></div>
+    <div class="stat"><div class="sv co">2</div><div class="sl">PIN Fallback</div></div>
+  </div>
+  <div class="card">
+    <table class="tbl">
+      <thead><tr><th>Name</th><th>Type</th><th>Auth</th><th>GPS In</th><th>GPS Out</th><th>In</th><th>Out</th><th>Status</th><th></th></tr></thead>
+      <tbody id="teamTbl"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ REMINDERS ═══ -->
+<div id="page-reminders" style="display:none">
+  <div class="pt">🔔 Reminders</div>
+  <div class="ps">SMS &amp; email nudges for workers who haven't submitted</div>
+  <div class="al al-w">⚠️ 3 workers have not submitted today's activity log</div>
+  <div id="reminderList"></div>
+  <div style="margin-top:14px;display:flex;gap:9px">
+    <button class="btn bp" onclick="sendAll()">📨 Send All Reminders</button>
+    <button class="btn bs">⚙️ Schedule</button>
+  </div>
+</div>
+
+<!-- ═══ PEOPLE (ADD/EDIT WORKERS) ═══ -->
+<div id="page-people" style="display:none">
+  <div class="fb">
+    <div><div class="pt">👤 People</div><div class="ps">Manage employees and subcontractors</div></div>
+    <button class="btn bp" onclick="openPersonModal()">+ Add Person</button>
+  </div>
+  <div class="tabs">
+    <div class="tab on" onclick="setPeopleTab('all',this)">All</div>
+    <div class="tab" onclick="setPeopleTab('employee',this)">Employees</div>
+    <div class="tab" onclick="setPeopleTab('sub',this)">Subcontractors</div>
+  </div>
+  <div id="peopleList"></div>
+</div>
+
+<!-- ═══ CLIENTS & SITES ═══ -->
+<div id="page-clients" style="display:none">
+  <div class="fb">
+    <div><div class="pt">🏢 Clients &amp; Sites</div><div class="ps">Manage clients and their site locations with GPS geofence coordinates</div></div>
+    <button class="btn bp" onclick="openClientModal()">+ Add Client</button>
+  </div>
+  <div id="clientList" style="margin-top:4px"></div>
+</div>
+
+<!-- ═══ MODULES ═══ -->
+<div id="page-modules" style="display:none">
+  <div class="pt">🧩 Modules</div>
+  <div class="ps">Turn features on or off. Changes apply immediately across all workers.</div>
+  <div class="card sec">
+    <div class="ct">🔐 Identity &amp; Anti Buddy-Punch</div>
+    <div class="tr"><div><div class="tn">Biometric Login (Face ID)</div><div class="td">Worker must verify with device biometrics before clocking in. Cannot be faked by someone else.</div></div><label class="sw"><input type="checkbox" id="mod-faceid" checked onchange="applyMods()"/><span class="sws"></span></label></div>
+    <div class="tr"><div><div class="tn">PIN Fallback</div><div class="td">Allow workers to use personal 4-digit PIN if Face ID unavailable. Disable for strict sites.</div></div><label class="sw"><input type="checkbox" id="mod-pin" checked onchange="applyMods()"/><span class="sws"></span></label></div>
+    <div class="tr"><div><div class="tn">Supervisor Override</div><div class="td">Master PIN lets supervisors approve clock-in when GPS or biometrics fail.</div></div><label class="sw"><input type="checkbox" id="mod-override" checked onchange="applyMods()"/><span class="sws"></span></label></div>
+  </div>
+  <div class="card sec">
+    <div class="ct">📍 Clock-In / Clock-Out &amp; Geofencing</div>
+    <div class="tr"><div><div class="tn">Clock-In / Clock-Out Module</div><div class="td">Show the time-tracking panel. Turn off for roles that only need activity logs, not time tracking.</div></div><label class="sw"><input type="checkbox" id="mod-clock" checked onchange="applyMods()"/><span class="sws"></span></label></div>
+    <div class="tr"><div><div class="tn">Auto GPS Geofencing</div><div class="td">GPS tracking starts automatically when worker opens the app. Clock-in unlocks only when inside the site boundary. No manual "Check GPS" needed.</div></div><label class="sw"><input type="checkbox" id="mod-geo" checked onchange="applyMods()"/><span class="sws"></span></label></div>
+    <div class="tr"><div><div class="tn">Auto Clock-Out on Exit</div><div class="td">Automatically records clock-out when device leaves the site geofence. Timestamp &amp; GPS coordinates saved.</div></div><label class="sw"><input type="checkbox" id="mod-autoclkout" checked onchange="applyMods()"/><span class="sws"></span></label></div>
+    <div class="tr"><div><div class="tn">Geofence Radius</div><div class="td">Default 15m (≈ 16 yards). Adjustable down to 5m per site in Clients &amp; Sites. The tighter the radius, the more precise the on-site detection.</div></div><label class="sw"><input type="checkbox" id="mod-radius" checked onchange="applyMods()"/><span class="sws"></span></label></div>
+  </div>
+  <div class="card sec">
+    <div class="ct">📋 Logging Features</div>
+    <div class="tr"><div><div class="tn">Camera Capture</div><div class="td">Live camera opens directly in the app — take photos and record video without leaving.</div></div><label class="sw"><input type="checkbox" id="mod-camera" checked onchange="applyMods()"/><span class="sws"></span></label></div>
+    <div class="tr"><div><div class="tn">Photo &amp; Video Upload</div><div class="td">Upload media from the device photo library as an alternative to live camera.</div></div><label class="sw"><input type="checkbox" id="mod-media" checked onchange="applyMods()"/><span class="sws"></span></label></div>
+    <div class="tr"><div><div class="tn">Voice Notes (Speech-to-Text)</div><div class="td">Workers can dictate notes by voice instead of typing.</div></div><label class="sw"><input type="checkbox" id="mod-voice" checked onchange="applyMods()"/><span class="sws"></span></label></div>
+    <div class="tr"><div><div class="tn">SMS &amp; Email Reminders</div><div class="td">Auto-send Twilio SMS and email reminders to workers who haven't submitted.</div></div><label class="sw"><input type="checkbox" id="mod-reminders" checked onchange="applyMods()"/><span class="sws"></span></label></div>
+  </div>
+</div>
+
+<!-- ═══ SETTINGS ═══ -->
+<div id="page-settings" style="display:none">
+  <div class="pt">⚙️ Settings</div>
+  <div class="ps">Integrations, branding, and geofence configuration</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+    <div class="card"><div class="ct">📱 Twilio SMS</div>
+      <div class="fg" style="margin-bottom:10px"><label>Account SID</label><input type="password" placeholder="ACxxxxxxxxxxxxxxxx"/></div>
+      <div class="fg" style="margin-bottom:10px"><label>Auth Token</label><input type="password" placeholder="••••••"/></div>
+      <div class="fg" style="margin-bottom:13px"><label>From Number</label><input placeholder="+61412345678"/></div>
+      <button class="btn bp bsm">💾 Save &amp; Test</button>
+    </div>
+    <div class="card"><div class="ct">📧 Email (SMTP)</div>
+      <div class="fg" style="margin-bottom:10px"><label>SMTP Host</label><input placeholder="smtp.sendgrid.net"/></div>
+      <div class="fg" style="margin-bottom:10px"><label>API Key</label><input type="password" placeholder="SG.xxxxxxxxxx"/></div>
+      <div class="fg" style="margin-bottom:13px"><label>From Email</label><input type="email" placeholder="no-reply@tradequip.com.au"/></div>
+      <button class="btn bp bsm">💾 Save &amp; Test</button>
+    </div>
+    <div class="card"><div class="ct">🎨 White Label</div>
+      <div class="fg" style="margin-bottom:10px"><label>Company Name</label><input value="TradeQuip"/></div>
+      <div class="fg" style="margin-bottom:10px"><label>Logo URL</label><input placeholder="https://…"/></div>
+      <div class="fg" style="margin-bottom:10px"><label>Primary Colour</label><input type="color" value="#f47c1c" style="height:36px;padding:3px"/></div>
+      <div class="fg" style="margin-bottom:13px"><label>Subdomain</label><input placeholder="yourco.tradequip.app"/></div>
+      <button class="btn bp bsm">💾 Save</button>
+    </div>
+    <div class="card"><div class="ct">📍 Geofence Defaults</div>
+      <div class="fg" style="margin-bottom:10px"><label>Default Radius (metres) — min 5m / ≈ 5.5 yds</label><input type="number" value="15" min="5" max="500" step="1"/></div>
+      <div class="fg" style="margin-bottom:10px"><label>Enforcement</label><select><option>Strict — block outside fence</option><option>Warn — allow with flag</option><option>Log only</option></select></div>
+      <div class="fg" style="margin-bottom:10px"><label>Supervisor Override PIN</label><input type="password" value="1234"/></div>
+      <div class="fg" style="margin-bottom:13px"><label>GPS Accuracy</label><select><option>High (GPS chip)</option><option>Medium (GPS + WiFi)</option></select></div>
+      <button class="btn bp bsm">💾 Save</button>
+    </div>
+    <div class="card"><div class="ct">🐙 GitHub</div>
+      <div class="fg" style="margin-bottom:10px"><label>Token</label><input type="password" placeholder="ghp_xxxx"/></div>
+      <div class="fg" style="margin-bottom:10px"><label>Repository</label><input placeholder="your-org/tradequip-logger"/></div>
+      <div class="fg" style="margin-bottom:13px"><label>Branch</label><input value="main"/></div>
+      <button class="btn bp bsm">🔗 Connect &amp; Push</button>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bnav">
+  <div class="bnav-inner">
+    <button class="bn on" onclick="showPageM('log',this)"><span class="bni">📋</span><span class="bnl">Log</span></button>
+    <button class="bn"    onclick="showPageM('admin',this)"><span class="bni">🛡️</span><span class="bnl">Admin</span></button>
+    <button class="bn"    onclick="showPageM('people',this)"><span class="bni">👤</span><span class="bnl">People</span></button>
+    <button class="bn"    onclick="showPageM('clients',this)"><span class="bni">🏢</span><span class="bnl">Sites</span></button>
+    <button class="bn"    onclick="showPageM('modules',this)"><span class="bni">🧩</span><span class="bnl">Modules</span></button>
+  </div>
+</nav>
+</div>
+
+<!-- BIO OVERLAY -->
+<div class="bio-ovl" id="bioOvl" style="display:none">
+  <div class="bio-box">
+    <div class="bio-title">Identity Verification</div>
+    <div class="bio-sub">Confirm who you are before clocking in.<br>Prevents buddy punching on site.</div>
+    <div class="bio-tabs"><div class="bio-tab on" onclick="setBioM('face',this)">😊 Face ID</div><div class="bio-tab" id="pinTab" onclick="setBioM('pin',this)">🔢 PIN</div></div>
+    <div id="facePanel">
+      <div class="fr"><div class="fr-o"></div><div class="fr-s" id="frS"></div><div class="fi"><div class="fe" id="faceE">😐</div><div class="fdots"><div class="fd"></div><div class="fd"></div><div class="fd"></div><div class="fd"></div></div></div><div class="fc tl"></div><div class="fc tr"></div><div class="fc bl"></div><div class="fc br"></div></div>
+      <div class="bst" id="bioSt" style="color:var(--soft)">Tap Start Scan to begin.</div>
+      <div style="display:flex;gap:8px;justify-content:center"><button class="btn bp bsm" id="scanBtn" onclick="startScan()">📷 Start Scan</button><button class="btn bs bsm" onclick="closeBio()">Cancel</button></div>
+    </div>
+    <div id="pinPanel" style="display:none">
+      <div style="font-size:13px;color:var(--soft);margin-bottom:10px">Enter your 4-digit site PIN</div>
+      <div class="pin-disp" id="pinDisp"><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div></div>
+      <div class="pin-grid" id="pinGrid"></div>
+      <div class="bst" id="pinSt" style="color:var(--soft);margin-top:2px"></div>
+      <button class="btn bs bsm" style="margin-top:8px" onclick="closeBio()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- PERSON MODAL -->
+<div class="modal" id="personModal" style="display:none">
+  <div class="mbox">
+    <div class="mhdr"><span class="mhdr-t" id="personModalTitle">Add Person</span><button class="mclose" onclick="closeModal('personModal')">✕</button></div>
+    <div class="mbody">
+      <div class="g2" style="gap:13px">
+        <div class="fg"><label>First Name</label><input id="pFname" placeholder="John"/></div>
+        <div class="fg"><label>Last Name</label><input id="pLname" placeholder="Smith"/></div>
+        <div class="fg"><label>Type</label><select id="pType"><option value="employee">Employee</option><option value="sub">Subcontractor</option></select></div>
+        <div class="fg"><label>Role / Trade</label><input id="pRole" placeholder="e.g. Electrician"/></div>
+        <div class="fg"><label>Mobile Number</label><input id="pPhone" placeholder="+61412345678" type="tel"/></div>
+        <div class="fg"><label>Email</label><input id="pEmail" placeholder="john@example.com" type="email"/></div>
+        <div class="fg"><label>Assigned Client</label><select id="pClient"><option value="">— Any Client —</option></select></div>
+        <div class="fg"><label>Personal PIN</label><input id="pPin" placeholder="4 digits" maxlength="4" type="password"/></div>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:9px;justify-content:flex-end">
+        <button class="btn bs bsm" onclick="closeModal('personModal')">Cancel</button>
+        <button class="btn bp bsm" onclick="savePerson()">💾 Save Person</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CLIENT MODAL -->
+<div class="modal" id="clientModal" style="display:none">
+  <div class="mbox">
+    <div class="mhdr"><span class="mhdr-t" id="clientModalTitle">Add Client</span><button class="mclose" onclick="closeModal('clientModal')">✕</button></div>
+    <div class="mbody">
+      <div class="g2" style="gap:13px">
+        <div class="fg gf"><label>Client / Company Name</label><input id="cName" placeholder="Acme Construction"/></div>
+        <div class="fg"><label>Contact Name</label><input id="cContact" placeholder="Jane Brown"/></div>
+        <div class="fg"><label>Contact Phone</label><input id="cPhone" placeholder="+61412345678" type="tel"/></div>
+        <div class="fg gf"><label>Contact Email</label><input id="cEmail" placeholder="jane@acme.com.au" type="email"/></div>
+      </div>
+      <div style="margin:16px 0 8px;font-family:var(--fh);font-size:14px;font-weight:700;color:#fff">Sites / Locations</div>
+      <div id="sitesList"></div>
+      <button class="btn bs bsm" style="margin-bottom:14px" onclick="addSiteRow()">+ Add Site</button>
+      <div style="display:flex;gap:9px;justify-content:flex-end">
+        <button class="btn bs bsm" onclick="closeModal('clientModal')">Cancel</button>
+        <button class="btn bp bsm" onclick="saveClient()">💾 Save Client</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MEDIA VIEWER -->
+<div id="mediaViewer" style="display:none" class="media-viewer">
+  <button class="mv-close" onclick="closeViewer()">✕</button>
+  <button class="mv-nav prev" onclick="viewerNav(-1)">‹</button>
+  <img id="mvImg" class="mv-img" src="" alt="" style="display:none"/>
+  <video id="mvVid" class="mv-vid" controls style="display:none"></video>
+  <button class="mv-nav next" onclick="viewerNav(1)">›</button>
+  <div class="mv-caption" id="mvCaption"></div>
+</div>
+
+<!-- SUCCESS OVERLAY -->
+<div class="ovl" id="successOvl" style="display:none">
+  <div class="obox">
+    <div style="font-size:44px;margin-bottom:11px">✅</div>
+    <div style="font-family:var(--fh);font-size:20px;font-weight:700;color:#fff;margin-bottom:6px">Activity Submitted!</div>
+    <div style="font-size:13px;color:var(--soft);margin-bottom:18px">Biometric stamp · GPS coordinates · Time · Media all saved.</div>
+    <button class="btn bp" onclick="document.getElementById('successOvl').style.display='none'">Done</button>
+  </div>
+</div>
+
+<!-- NOTIF OVERLAY -->
+<div class="ovl" id="notifOvl" style="display:none">
+  <div class="obox" style="max-width:400px">
+    <div style="font-family:var(--fh);font-size:18px;font-weight:700;color:#fff;margin-bottom:12px">🔔 Pending Reminders</div>
+    <div id="notifList"></div>
+    <button class="btn bs" style="margin-top:12px;width:100%" onclick="document.getElementById('notifOvl').style.display='none'">Close</button>
+  </div>
+</div>
+
+<div class="csv-toast" id="csvToast">✅ CSV exported</div>
+
+<script>
+/* ════════════════════════════════════════
+   PERSISTENT DATA STORE (localStorage)
+════════════════════════════════════════ */
+function ls(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}
+function lsSet(k,v){localStorage.setItem(k,JSON.stringify(v))}
+
+// Seed default data if first run — force reseed if radius values are old
+if(!ls('tq_clients')||ls('tq_clients_v')!=='v2'){
+  lsSet('tq_clients_v','v2');
+  lsSet('tq_clients',[
+    {id:'acme',name:'Acme Construction',contact:'Bob Harris',phone:'+61411111111',email:'bob@acme.com.au',sites:[{id:'s1',name:'Site A – North',lat:-33.8688,lng:151.2093,r:15},{id:'s2',name:'Site B – Warehouse',lat:-33.875,lng:151.204,r:15},{id:'s3',name:'Site C – Office',lat:-33.867,lng:151.207,r:15}]},
+    {id:'harbour',name:'Harbour Developments',contact:'Sue Lin',phone:'+61422222222',email:'sue@harbour.com.au',sites:[{id:'s4',name:'Pier 4',lat:-33.859,lng:151.21,r:15},{id:'s5',name:'Marina Block',lat:-33.86,lng:151.212,r:15},{id:'s6',name:'South Wharf',lat:-33.861,lng:151.208,r:15}]},
+    {id:'metro',name:'Metro Infrastructure',contact:'Tony Russo',phone:'+61433333333',email:'tony@metro.com.au',sites:[{id:'s7',name:'Highway 12',lat:-33.88,lng:151.19,r:15},{id:'s8',name:'Tunnel Section',lat:-33.882,lng:151.192,r:15},{id:'s9',name:'Depot',lat:-33.878,lng:151.188,r:15}]},
+    {id:'summit',name:'Summit Building Group',contact:'Kim Park',phone:'+61444444444',email:'kim@summit.com.au',sites:[{id:'s10',name:'Tower A',lat:-33.87,lng:151.205,r:15},{id:'s11',name:'Carpark Level 2',lat:-33.8705,lng:151.2055,r:15},{id:'s12',name:'Rooftop',lat:-33.8698,lng:151.2048,r:15}]}
+  ]);
+}
+if(!ls('tq_workers')){
+  lsSet('tq_workers',[
+    {id:'w1',fname:'James',lname:'Carter',type:'employee',role:'Site Foreman',phone:'+61400000001',email:'james@example.com',client:'acme',pin:'1234'},
+    {id:'w2',fname:'Maria',lname:'Santos',type:'sub',role:'Waterproofer',phone:'+61400000002',email:'maria@example.com',client:'harbour',pin:'2345'},
+    {id:'w3',fname:'Tom',lname:'Nguyen',type:'employee',role:'Earthworks',phone:'+61400000003',email:'tom@example.com',client:'metro',pin:'3456'},
+    {id:'w4',fname:'Aiden',lname:'Bell',type:'employee',role:'Concretor',phone:'+61400000004',email:'aiden@example.com',client:'summit',pin:'4567'},
+    {id:'w5',fname:'Priya',lname:'Mehta',type:'sub',role:'Electrician',phone:'+61400000005',email:'priya@example.com',client:'acme',pin:'5678'},
+    {id:'w6',fname:'Luke',lname:'Chen',type:'employee',role:'Plumber',phone:'+61400000006',email:'luke@example.com',client:'harbour',pin:'6789'},
+    {id:'w7',fname:'Sara',lname:'Holmes',type:'sub',role:'Safety Officer',phone:'+61400000007',email:'sara@example.com',client:'metro',pin:'7890'}
+  ]);
+}
+if(!ls('tq_submissions')){
+  lsSet('tq_submissions',[
+    {id:'sub1',worker:'James Carter',wtype:'Employee',client:'Acme Construction',site:'Site A – North',task:'Equipment Install',clockIn:'07:02',clockOut:'15:45',dur:'8h 43m',auth:'Face ID',gpsIn:'42m',gpsOut:'38m',media:[{type:'image',url:'https://picsum.photos/seed/site1/400/300',thumb:'https://picsum.photos/seed/site1/120/120'},{type:'image',url:'https://picsum.photos/seed/site2/400/300',thumb:'https://picsum.photos/seed/site2/120/120'},{type:'image',url:'https://picsum.photos/seed/site3/400/300',thumb:'https://picsum.photos/seed/site3/120/120'},{type:'image',url:'https://picsum.photos/seed/site4/400/300',thumb:'https://picsum.photos/seed/site4/120/120'}],notes:'Installed hydraulic units 4-6. All torqued to spec.',date:'24 Mar',status:'submitted'},
+    {id:'sub2',worker:'Maria Santos',wtype:'Subcontractor',client:'Harbour Developments',site:'Pier 4',task:'Inspection',clockIn:'06:50',clockOut:'14:30',dur:'7h 40m',auth:'Face ID',gpsIn:'88m',gpsOut:'95m',media:[{type:'image',url:'https://picsum.photos/seed/pier1/400/300',thumb:'https://picsum.photos/seed/pier1/120/120'},{type:'image',url:'https://picsum.photos/seed/pier2/400/300',thumb:'https://picsum.photos/seed/pier2/120/120'}],notes:'Waterproofing inspection complete.',date:'23 Mar',status:'submitted'},
+    {id:'sub3',worker:'Tom Nguyen',wtype:'Employee',client:'Metro Infrastructure',site:'Highway 12',task:'Earthworks',clockIn:'',clockOut:'',dur:'—',auth:'—',gpsIn:'—',gpsOut:'—',media:[],notes:'',date:'24 Mar',status:'missing'},
+    {id:'sub4',worker:'Aiden Bell',wtype:'Employee',client:'Summit Building Group',site:'Tower A',task:'Concrete Work',clockIn:'08:00',clockOut:'15:00',dur:'7h 00m',auth:'Face ID',gpsIn:'15m',gpsOut:'20m',media:[{type:'image',url:'https://picsum.photos/seed/tower1/400/300',thumb:'https://picsum.photos/seed/tower1/120/120'},{type:'image',url:'https://picsum.photos/seed/tower2/400/300',thumb:'https://picsum.photos/seed/tower2/120/120'},{type:'image',url:'https://picsum.photos/seed/tower3/400/300',thumb:'https://picsum.photos/seed/tower3/120/120'}],notes:'Level 12 formwork complete.',date:'24 Mar',status:'submitted'}
+  ]);
+}
+
+/* ════════════════════════════════════════
+   STATE
+════════════════════════════════════════ */
+const MOD={faceid:true,pin:true,override:true,clock:true,geo:true,autoclkout:true,camera:true,media:true,voice:true,reminders:true};
+let currentUser=null,bioVerified=false,bioAction='';
+let clockedIn=false,clockedOut=false,inVal=null;
+let uLat=null,uLng=null,geoOk=false,watchId=null;
+let camStream=null,mediaRec=null,camFacing='environment';
+let mediaFiles=[]; // {type, url, blob, name}
+let viewerMedia=[],viewerIdx=0;
+let pinEntry='',voiceText='',recording=false;
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+const reco=SR?new SR():null;
+let editingPersonId=null,editingClientId=null;
+
+/* ════════════════════════════════════════
+   STATIC DATA (must be before INIT calls)
+════════════════════════════════════════ */
+const ADMIN_LOGS=[
+  {worker:'James Carter',type:'Employee',client:'Acme Construction',site:'Site A – North',auth:'Face ID',gpsIn:'42m',gpsOut:'38m',clockIn:'07:02',clockOut:'15:45',dur:'8h 43m',media:4,status:'submitted'},
+  {worker:'Maria Santos',type:'Subcontractor',client:'Harbour',site:'Pier 4',auth:'Face ID',gpsIn:'88m',gpsOut:'95m',clockIn:'06:50',clockOut:'14:30',dur:'7h 40m',media:2,status:'submitted'},
+  {worker:'Tom Nguyen',type:'Employee',client:'Metro',site:'Highway 12',auth:'—',gpsIn:'—',gpsOut:'—',clockIn:'',clockOut:'',dur:'—',media:0,status:'missing'},
+  {worker:'Aiden Bell',type:'Employee',client:'Summit',site:'Tower A',auth:'Face ID',gpsIn:'15m',gpsOut:'20m',clockIn:'08:00',clockOut:'15:00',dur:'7h 00m',media:3,status:'submitted'},
+  {worker:'Priya Mehta',type:'Subcontractor',client:'Acme',site:'Site C',auth:'—',gpsIn:'—',gpsOut:'—',clockIn:'',clockOut:'',dur:'—',media:0,status:'missing'},
+  {worker:'Luke Chen',type:'Employee',client:'Harbour',site:'South Wharf',auth:'PIN',gpsIn:'120m',gpsOut:'—',clockIn:'07:30',clockOut:'',dur:'Active',media:1,status:'draft'},
+  {worker:'Sara Holmes',type:'Subcontractor',client:'Metro',site:'Depot',auth:'—',gpsIn:'—',gpsOut:'—',clockIn:'',clockOut:'',dur:'—',media:0,status:'missing'},
+];
+const GPS_TRAIL=[
+  {worker:'James Carter',site:'Site A – North',event:'Clock In',time:'07:02',coords:'-33.8691, 151.2096',dist:'42m',auth:'Face ID'},
+  {worker:'Maria Santos',site:'Pier 4',event:'Clock In',time:'06:50',coords:'-33.8597, 151.2108',dist:'88m',auth:'Face ID'},
+  {worker:'Luke Chen',site:'South Wharf',event:'Clock In',time:'07:30',coords:'-33.8614, 151.2083',dist:'120m',auth:'PIN ⚠️'},
+  {worker:'Aiden Bell',site:'Tower A',event:'Clock In',time:'08:00',coords:'-33.8702, 151.2052',dist:'15m',auth:'Face ID'},
+  {worker:'James Carter',site:'Site A – North',event:'Clock Out',time:'15:45',coords:'-33.8690, 151.2094',dist:'38m',auth:'—'},
+  {worker:'Maria Santos',site:'Pier 4',event:'Clock Out',time:'14:30',coords:'-33.8599, 151.2109',dist:'95m',auth:'—'},
+];
+const HRS=[
+  {w:'James Carter',t:'Employee',mon:'8h 43m',tue:'7h 55m',wed:'8h 10m',thu:'9h 00m',fri:'8h 43m',tot:'42h 31m',fl:0},
+  {w:'Maria Santos',t:'Subcontractor',mon:'7h 40m',tue:'7h 20m',wed:'0',thu:'7h 50m',fri:'7h 40m',tot:'30h 30m',fl:0},
+  {w:'Tom Nguyen',t:'Employee',mon:'8h 00m',tue:'8h 00m',wed:'8h 00m',thu:'8h 00m',fri:'—',tot:'32h 00m',fl:1},
+  {w:'Aiden Bell',t:'Employee',mon:'7h 00m',tue:'7h 30m',wed:'7h 00m',thu:'7h 45m',fri:'7h 00m',tot:'36h 15m',fl:0},
+  {w:'Luke Chen',t:'Employee',mon:'7h 30m',tue:'8h 00m',wed:'7h 45m',thu:'8h 15m',fri:'Active',tot:'31h+',fl:1},
+];
+
+/* ════════════════════════════════════════
+   INIT
+════════════════════════════════════════ */
+document.getElementById('todayPill').textContent=new Date().toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'});
+buildPinGrid();
+populateClientDropdowns();
+startAutoGeo();
+buildHistTable();buildTeamTable();buildAdminPage();buildReminders();buildNotif();
+buildPeopleList('all');buildClientList();
+
+/* ════════════════════════════════════════
+   NAV
+════════════════════════════════════════ */
+const PAGES=['log','history','admin','team','reminders','people','clients','modules','settings'];
+function navTo(id,el){PAGES.forEach(p=>document.getElementById('page-'+p).style.display='none');document.getElementById('page-'+id).style.display='';document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));if(el)el.classList.add('on');}
+function showPageM(id,el){PAGES.forEach(p=>document.getElementById('page-'+p).style.display='none');document.getElementById('page-'+id).style.display='';document.querySelectorAll('.bn').forEach(n=>n.classList.remove('on'));el.classList.add('on');window.scrollTo({top:0,behavior:'smooth'});}
+
+/* ════════════════════════════════════════
+   CLIENT / SITE DROPDOWNS (dynamic from store)
+════════════════════════════════════════ */
+function getClients(){return ls('tq_clients')||[];}
+function getWorkers(){return ls('tq_workers')||[];}
+function getSubs(){return ls('tq_submissions')||[];}
+
+function populateClientDropdowns(){
+  const clients=getClients();
+  // Log page dropdown
+  const cs=document.getElementById('clientSel');
+  cs.innerHTML='<option value="">— Select Client —</option>';
+  clients.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name;cs.appendChild(o);});
+  // Person modal dropdown
+  const pc=document.getElementById('pClient');
+  pc.innerHTML='<option value="">— Any Client —</option>';
+  clients.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name;pc.appendChild(o);});
+}
+
+function updateLocs(){
+  const cid=document.getElementById('clientSel').value;
+  const ls2=document.getElementById('locSel');
+  ls2.innerHTML='<option value="">— Select Location —</option>';
+  if(!cid)return;
+  const client=getClients().find(c=>c.id===cid);
+  if(client)client.sites.forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.name;ls2.appendChild(o);});
+  geoOk=false;
+}
+function onSiteChange(){geoOk=false;refreshCkBtns();}
+
+/* ════════════════════════════════════════
+   AUTO GEOFENCING (no manual check button)
+════════════════════════════════════════ */
+function hav(a,b,c,d){const R=6371000,r=x=>x*Math.PI/180,da=r(c-a),db=r(d-b),x=Math.sin(da/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(db/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
+
+function getSelectedSite(){
+  const cid=document.getElementById('clientSel').value;
+  const sid=document.getElementById('locSel').value;
+  if(!cid||!sid)return null;
+  const client=getClients().find(c=>c.id===cid);
+  return client?client.sites.find(s=>s.id===sid)||null:null;
+}
+
+function startAutoGeo(){
+  if(!navigator.geolocation){setGeoState('nosupport');return;}
+  setGeoState('locating');
+  // High-accuracy continuous watch — no button needed
+  watchId=navigator.geolocation.watchPosition(pos=>{
+    uLat=pos.coords.latitude;uLng=pos.coords.longitude;
+    const site=getSelectedSite();
+    if(!site){setGeoState('nosite');return;}
+    const dist=hav(uLat,uLng,site.lat,site.lng);
+    showDistBar(dist,site.r);
+    if(dist<=site.r){
+      if(!geoOk){addGeoEvt('entered',dist);} // only log once on entry
+      geoOk=true;setGeoState('onsite',dist,site.name);
+    } else {
+      if(geoOk&&clockedIn&&!clockedOut&&MOD.autoclkout){
+        // Auto clock out on exit
+        addGeoEvt('exited',dist);proceedClock('out');
+        showToast('📍 Left site — auto clocked out at '+fmt(new Date()));
+      }
+      geoOk=false;setGeoState('offsite',dist,site.name);
+    }
+    refreshCkBtns();
+  },err=>{
+    // Demo mode — simulate on-site
+    uLat=-33.8688;uLng=151.2093;
+    const site=getSelectedSite();
+    const demoDist=site?Math.floor(Math.random()*80)+15:999;
+    if(site){showDistBar(demoDist,site.r);geoOk=demoDist<=site.r;setGeoState(geoOk?'onsite':'offsite',demoDist,site.name);if(geoOk&&!clockedIn)addGeoEvt('entered',demoDist);}
+    else{setGeoState('nosite');}
+    refreshCkBtns();
+  },{enableHighAccuracy:true,maximumAge:15000,timeout:15000});
+}
+
+function setGeoState(state,dist,name){
+  const ico=document.getElementById('geoIco');
+  const ttl=document.getElementById('geoTtl');
+  const sub=document.getElementById('geoSub');
+  const ldot=document.getElementById('geoLiveDot');
+  ico.className='geo-ico';
+  ldot.style.display='none';
+  if(state==='locating'){ico.textContent='🔄';ico.classList.add('spin');ttl.textContent='Locating you…';sub.textContent='GPS is running automatically in the background';}
+  else if(state==='nosite'){ico.textContent='📍';ttl.textContent='Select a client and site';sub.textContent='GPS tracking will engage once a site is chosen';}
+  else if(state==='nosupport'){ico.textContent='⚠️';ttl.textContent='GPS not available on this device';sub.textContent='Clock-in will use supervisor override';}
+  else if(state==='onsite'){ico.classList.add('ok');ico.textContent='✅';ttl.textContent='On-site — '+name;sub.textContent=(dist?Math.round(dist)+'m from site centre · ':'')+'Clock-in enabled';ldot.style.display='flex';}
+  else if(state==='offsite'){ico.classList.add('bad');ico.textContent='🚫';ttl.textContent='Not on site — '+(dist?Math.round(dist)+'m away':'');sub.textContent='GPS is tracking. Clock-in will unlock when you arrive at '+name;}
+}
+
+function showDistBar(dist,r){
+  document.getElementById('distBlock').style.display='';
+  const pct=Math.min(dist/(r*2.5),1)*100;
+  const f=document.getElementById('distFill');f.style.width=pct+'%';f.style.background=dist<=r?'var(--green)':dist<=r*1.5?'var(--yellow)':'var(--red)';
+  const v=document.getElementById('distVal');v.textContent=dist<1000?Math.round(dist)+'m away':(dist/1000).toFixed(1)+'km away';v.style.color=dist<=r?'var(--green)':'var(--red)';
+}
+
+function addGeoEvt(type,dist){
+  const log=document.getElementById('geoLog'),now=new Date();
+  const col={entered:'var(--green)',exited:'var(--red)',clockin:'var(--green)',clockout:'var(--red)'}[type]||'var(--orange)';
+  const lbl={entered:'Arrived at site — GPS locked',exited:'Left site — auto clocked out',clockin:'Clocked In',clockout:'Clocked Out'}[type]||type;
+  const cls={clockin:'bg-g',clockout:'bg-r',entered:'bg-g',exited:'bg-r'}[type]||'bg-m';
+  const d=document.createElement('div');d.className='ge';
+  d.innerHTML=`<div class="gdot" style="background:${col}"></div><span class="gtm">${fmt(now)}</span><span class="gdsc">${lbl}${dist&&dist>0?' · '+Math.round(dist)+'m':''}</span><span class="bdg ${cls}" style="font-size:10px">${currentUser?currentUser.fname+' '+currentUser.lname:'—'}</span>`;
+  log.appendChild(d);
+}
+
+function refreshCkBtns(){
+  const canIn=bioVerified&&geoOk&&MOD.clock&&!clockedIn;
+  const canOut=bioVerified&&MOD.clock&&clockedIn&&!clockedOut;
+  const bI=document.getElementById('btnIn'),bO=document.getElementById('btnOut');
+  bI.disabled=!canIn;bO.disabled=!canOut;
+  document.getElementById('lkIn').style.display=(bioVerified&&geoOk)?'none':'';
+  document.getElementById('lkOut').style.display=clockedIn?'none':'';
+  document.getElementById('sbIn').textContent=clockedIn?'Clocked in ✅':canIn?'Tap to clock in':!bioVerified?'Verify identity first':!geoOk?'GPS placing you…':'Ready';
+  document.getElementById('sbOut').textContent=clockedOut?'Clocked out ✅':canOut?'Tap to clock out':!clockedIn?'Clock in first':'—';
+  if(clockedIn)bI.classList.add('din');
+  if(clockedOut)bO.classList.add('dout');
+}
+
+function doClock(dir){
+  if(!bioVerified&&MOD.faceid){triggerBio(dir==='in'?'clockin':'clockout');return;}
+  proceedClock(dir);
+}
+function proceedClock(dir){
+  if(dir==='in'&&!clockedIn){
+    clockedIn=true;inVal=new Date();
+    document.getElementById('inT').textContent=fmt(inVal);
+    document.getElementById('sDot').className='dot dg';
+    document.getElementById('sLbl').textContent='On-site';
+    addGeoEvt('clockin',0);startTick();refreshCkBtns();
+  } else if(dir==='out'&&clockedIn&&!clockedOut){
+    clockedOut=true;const o=new Date();
+    document.getElementById('outT').textContent=fmt(o);
+    const m=Math.round((o-inVal)/60000);
+    document.getElementById('durT').textContent=Math.floor(m/60)+'h '+('0'+m%60).slice(-2)+'m';
+    document.getElementById('sDot').className='dot dr';document.getElementById('sLbl').textContent='Clocked out';
+    addGeoEvt('clockout',0);refreshCkBtns();
+  }
+}
+function fmt(d){return d.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});}
+function startTick(){setInterval(()=>{if(!clockedIn||clockedOut)return;const m=Math.round((new Date()-inVal)/60000);document.getElementById('durT').textContent=Math.floor(m/60)+'h '+('0'+m%60).slice(-2)+'m';},15000);}
+
+/* ════════════════════════════════════════
+   CAMERA
+════════════════════════════════════════ */
+function setCamTab(tab,el){
+  document.querySelectorAll('.cam-tab button').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('camPanel').style.display=tab==='camera'?'':'none';
+  document.getElementById('uploadPanel').style.display=tab==='upload'?'':'none';
+}
+
+async function startCam(){
+  try{
+    camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:camFacing},audio:true});
+    const v=document.getElementById('camVideo');v.srcObject=camStream;
+    document.getElementById('camStart').style.display='none';
+    document.getElementById('camOverlay').style.display='flex';
+  }catch(e){
+    document.getElementById('camStart').innerHTML='<div style="font-size:28px">⚠️</div><div style="font-size:13px;color:var(--soft);text-align:center">Camera access denied.<br>Use Upload Files instead.</div>';
+  }
+}
+async function switchCam(){
+  if(camStream){camStream.getTracks().forEach(t=>t.stop());}
+  camFacing=camFacing==='environment'?'user':'environment';
+  await startCam();
+}
+function capture(){
+  const v=document.getElementById('camVideo');
+  const c=document.createElement('canvas');c.width=v.videoWidth;c.height=v.videoHeight;
+  c.getContext('2d').drawImage(v,0,0);
+  c.toBlob(blob=>{
+    const url=URL.createObjectURL(blob);
+    mediaFiles.push({type:'image',url,blob,name:'photo-'+Date.now()+'.jpg'});
+    renderMediaGrid();
+    // Flash effect
+    const ov=document.getElementById('camOverlay');ov.style.background='rgba(255,255,255,.7)';setTimeout(()=>ov.style.background='',120);
+  },'image/jpeg',0.92);
+}
+function toggleVideo(){
+  const btn=document.getElementById('recBtn');
+  const ind=document.getElementById('recIndicator');
+  if(!mediaRec){
+    const chunks=[];
+    mediaRec=new MediaRecorder(camStream);
+    mediaRec.ondataavailable=e=>chunks.push(e.data);
+    mediaRec.onstop=()=>{
+      const blob=new Blob(chunks,{type:'video/webm'});
+      const url=URL.createObjectURL(blob);
+      mediaFiles.push({type:'video',url,blob,name:'video-'+Date.now()+'.webm'});
+      renderMediaGrid();
+      mediaRec=null;
+    };
+    mediaRec.start();
+    btn.textContent='⏹️';ind.style.display='block';
+  } else {
+    mediaRec.stop();btn.textContent='⏺️';ind.style.display='none';
+  }
+}
+
+/* ════════════════════════════════════════
+   UPLOAD / MEDIA GRID
+════════════════════════════════════════ */
+function doDrag(e,on){e.preventDefault();document.getElementById('dropZone').style.borderColor=on?'var(--orange)':'';}
+function doDrop(e){e.preventDefault();handleFiles(e.dataTransfer.files);}
+function handleFiles(files){
+  Array.from(files).forEach(f=>{
+    if(!f.type.startsWith('image/')&&!f.type.startsWith('video/'))return;
+    mediaFiles.push({type:f.type.startsWith('video/')?'video':'image',url:URL.createObjectURL(f),blob:f,name:f.name});
+  });
+  renderMediaGrid();
+}
+
+function renderMediaGrid(){
+  const g=document.getElementById('mediaGrid');
+  g.innerHTML='';
+  mediaFiles.forEach((m,i)=>{
+    const d=document.createElement('div');d.className='mt';
+    d.innerHTML=m.type==='video'
+      ?`<video src="${m.url}" muted playsinline></video><span class="mt-tag">VID</span>`
+      :`<img src="${m.url}" alt=""/><span class="mt-tag">IMG</span>`;
+    const del=document.createElement('button');del.className='mt-del';del.textContent='✕';
+    del.onclick=e=>{e.stopPropagation();mediaFiles.splice(i,1);renderMediaGrid();};
+    d.appendChild(del);
+    d.onclick=()=>openViewer(mediaFiles,i);
+    g.appendChild(d);
+  });
+  document.getElementById('noMedia').style.display=mediaFiles.length?'none':'block';
+}
+
+/* ════════════════════════════════════════
+   MEDIA VIEWER
+════════════════════════════════════════ */
+function openViewer(mediaArr,idx){
+  viewerMedia=mediaArr;viewerIdx=idx;
+  document.getElementById('mediaViewer').style.display='flex';
+  showViewerItem();
+}
+function showViewerItem(){
+  const m=viewerMedia[viewerIdx];
+  const img=document.getElementById('mvImg'),vid=document.getElementById('mvVid');
+  img.style.display='none';vid.style.display='none';
+  if(m.type==='image'||m.type==='image'){img.src=m.url||m.thumb;img.style.display='';}
+  else{vid.src=m.url;vid.style.display='';}
+  document.getElementById('mvCaption').textContent=(viewerIdx+1)+' / '+viewerMedia.length+(m.name?' · '+m.name:'');
+}
+function viewerNav(dir){viewerIdx=(viewerIdx+dir+viewerMedia.length)%viewerMedia.length;showViewerItem();}
+function closeViewer(){document.getElementById('mediaViewer').style.display='none';document.getElementById('mvVid').pause();}
+
+/* ════════════════════════════════════════
+   BIOMETRIC AUTH
+════════════════════════════════════════ */
+function triggerBio(action){
+  bioAction=action;
+  document.getElementById('bioOvl').style.display='flex';
+  setBioM('face',document.querySelector('.bio-tab.on'));
+  document.getElementById('bioSt').textContent='Tap Start Scan to begin.';
+  document.getElementById('bioSt').style.color='var(--soft)';
+  document.getElementById('scanBtn').style.display='';
+  document.getElementById('frS').className='fr-s';
+  document.getElementById('faceE').textContent='😐';
+  resetDots();
+}
+function closeBio(){document.getElementById('bioOvl').style.display='none';pinEntry='';refreshPinDisp();document.getElementById('pinSt').textContent='';}
+function setBioM(m,el){document.querySelectorAll('.bio-tab').forEach(t=>t.classList.remove('on'));if(el)el.classList.add('on');document.getElementById('facePanel').style.display=m==='face'?'':'none';document.getElementById('pinPanel').style.display=m==='pin'?'':'none';if(m==='pin'){pinEntry='';refreshPinDisp();}}
+
+function startScan(){
+  document.getElementById('scanBtn').style.display='none';
+  document.getElementById('frS').className='fr-s sp';
+  document.getElementById('bioSt').textContent='Looking for your face…';
+  if(window.PublicKeyCredential){
+    PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(a=>{a?doWebAuthn():doSim();}).catch(()=>doSim());
+  } else {doSim();}
+}
+function doWebAuthn(){
+  const ch=new Uint8Array(32);crypto.getRandomValues(ch);
+  navigator.credentials.get({publicKey:{challenge:ch,timeout:30000,userVerification:'required',rpId:location.hostname||'localhost'}}).then(()=>onBioOk('Face ID')).catch(e=>{if(e.name==='NotAllowedError'){document.getElementById('bioSt').textContent='Cancelled — try PIN.';document.getElementById('scanBtn').style.display='';}else{doSim();}});
+}
+function doSim(){
+  const dots=document.querySelectorAll('.fd');let i=0;
+  const iv=setInterval(()=>{if(i<dots.length){dots[i].classList.add('lit');i++;}else{clearInterval(iv);setTimeout(()=>onBioOk('Face ID (Demo)',getWorkers()[0]),400);}},250);
+}
+function onBioOk(method,w){
+  if(!w)w=getWorkers()[0];
+  currentUser=w;bioVerified=true;
+  document.querySelectorAll('.fd').forEach(d=>{d.classList.remove('lit');d.classList.add('ok');});
+  document.getElementById('frS').className='fr-s ok';
+  document.getElementById('faceE').textContent='😊';
+  document.getElementById('bioSt').style.color='var(--green)';
+  document.getElementById('bioSt').textContent='Verified — '+(w.fname+' '+w.lname);
+  setTimeout(()=>{closeBio();applyBioOk(w,method);if(bioAction==='clockin')proceedClock('in');else if(bioAction==='clockout')proceedClock('out');},700);
+}
+function applyBioOk(w,method){
+  document.getElementById('avInit').textContent=(w.fname[0]+(w.lname?w.lname[0]:'')).toUpperCase();
+  document.getElementById('avV').style.display='flex';
+  document.getElementById('workerDisplay').textContent=w.fname+' '+w.lname;
+  document.getElementById('bioBanner').style.display='none';
+  document.getElementById('bioOkBanner').style.display='flex';
+  document.getElementById('bioOkName').textContent=w.fname+' '+w.lname;
+  document.getElementById('bioOkMethod').textContent=method;
+  document.getElementById('bioOkTime').textContent=fmt(new Date());
+  refreshCkBtns();
+}
+function resetDots(){document.querySelectorAll('.fd').forEach(d=>{d.className='fd';});}
+
+/* PIN */
+function buildPinGrid(){
+  const g=document.getElementById('pinGrid');
+  [1,2,3,4,5,6,7,8,9,'⌫',0,'✓'].forEach(k=>{
+    const b=document.createElement('button');b.className='pk';b.textContent=k;
+    b.onclick=()=>pinPress(String(k));g.appendChild(b);
+  });
+}
+function pinPress(k){
+  if(k==='⌫'){pinEntry=pinEntry.slice(0,-1);}
+  else if(k==='✓'){checkPin();}
+  else if(pinEntry.length<4){pinEntry+=k;}
+  refreshPinDisp();
+  if(pinEntry.length===4)setTimeout(checkPin,100);
+}
+function refreshPinDisp(){document.querySelectorAll('.pin-dot').forEach((d,i)=>d.classList.toggle('filled',i<pinEntry.length));}
+function checkPin(){
+  const workers=getWorkers();
+  const w=workers.find(x=>x.pin===pinEntry);
+  if(w){document.getElementById('pinSt').style.color='var(--green)';document.getElementById('pinSt').textContent='✅ Verified — '+w.fname+' '+w.lname;setTimeout(()=>{closeBio();applyBioOk(w,'PIN Fallback');if(bioAction==='clockin')proceedClock('in');else if(bioAction==='clockout')proceedClock('out');},600);}
+  else{document.getElementById('pinSt').style.color='var(--red)';document.getElementById('pinSt').textContent='❌ Incorrect PIN';pinEntry='';refreshPinDisp();}
+}
+
+/* ════════════════════════════════════════
+   VOICE
+════════════════════════════════════════ */
+function toggleRec(){
+  if(!reco){document.getElementById('voiceTx').style.display='';document.getElementById('voiceTx').textContent='Voice recognition not supported — type instead.';document.getElementById('voiceActs').style.display='flex';return;}
+  if(!recording){recording=true;document.getElementById('voiceBtn').classList.add('rec');document.getElementById('voiceSt').textContent='🔴 Recording… tap to stop';document.getElementById('voiceTx').style.display='none';reco.continuous=true;reco.interimResults=true;reco.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;voiceText=t;document.getElementById('voiceTx').style.display='';document.getElementById('voiceTx').textContent=t;};reco.start();}
+  else{recording=false;reco.stop();document.getElementById('voiceBtn').classList.remove('rec');document.getElementById('voiceSt').textContent='Recording stopped';document.getElementById('voiceActs').style.display='flex';}
+}
+function acceptVoice(){const t=document.getElementById('taskDesc');t.value=(t.value+'\n'+voiceText).trim();clearVoice();}
+function clearVoice(){voiceText='';document.getElementById('voiceTx').style.display='none';document.getElementById('voiceActs').style.display='none';document.getElementById('voiceSt').textContent='Tap to dictate a note';}
+
+/* ════════════════════════════════════════
+   SUBMIT / HISTORY
+════════════════════════════════════════ */
+function submitAct(){
+  if(!document.getElementById('clientSel').value||!document.getElementById('locSel').value){alert('Please select a client and location.');return;}
+  if(!bioVerified&&MOD.faceid){triggerBio('submit');return;}
+  document.getElementById('successOvl').style.display='flex';
+}
+function saveDraft(){const b=event.currentTarget;b.textContent='✅ Saved!';setTimeout(()=>b.textContent='💾 Save Draft',2000);}
+
+function buildHistTable(){
+  const tb=document.getElementById('histTbl');tb.innerHTML='';
+  getSubs().forEach(r=>{
+    const tr=document.createElement('tr');tr.style.cursor='pointer';
+    const hasmedia=r.media&&r.media.length>0;
+    tr.innerHTML=`<td>${r.date}</td><td>${r.client}</td><td>${r.site}</td><td>${r.task}</td><td>${r.clockIn||'—'}</td><td>${r.clockOut||'—'}</td><td><span class="bdg ${r.auth==='Face ID'?'bg-p':'bg-o'}">${r.auth}</span></td><td><span class="bdg bg-g">${r.gpsIn}</span></td><td><span class="bdg ${hasmedia?'bg-b':'bg-m'}" style="cursor:${hasmedia?'pointer':'default'}">${hasmedia?'📷 '+r.media.length+' files':'none'}</span></td><td><span class="bdg ${r.status==='submitted'?'bg-g':'bg-o'}">${r.status==='submitted'?'✅ Submitted':'⚠️ '+r.status}</span></td>`;
+    if(hasmedia){tr.querySelector('td:nth-child(9) span').onclick=e=>{e.stopPropagation();openViewer(r.media,0);};}
+    tb.appendChild(tr);
+  });
+}
+
+/* ════════════════════════════════════════
+   ADMIN PAGE
+════════════════════════════════════════ */
+function buildAdminPage(){buildAdminTbl(ADMIN_LOGS);buildBuddyAlerts();buildLiveStatus();buildAuthBreak();buildHrsTbl();buildGPSAudit();}
+
+function buildAdminTbl(logs){
+  const tb=document.getElementById('adminTbl');tb.innerHTML='';
+  logs.forEach(r=>{
+    const sc={submitted:'bg-g',missing:'bg-r',draft:'bg-o'}[r.status];
+    const ab=r.auth==='Face ID'?'<span class="bdg bg-p">😊 Face ID</span>':r.auth==='PIN'?'<span class="bdg bg-o">🔢 PIN</span>':'<span class="bdg bg-r">⚠️ None</span>';
+    const gi=r.gpsIn==='—'?'<span class="bdg bg-r">❌</span>':`<span class="bdg bg-g">📍 ${r.gpsIn}</span>`;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><strong>${r.worker}</strong></td><td><span class="bdg ${r.type==='Employee'?'bg-b':'bg-o'}" style="font-size:10px">${r.type}</span></td><td style="font-size:12px">${r.client}</td><td style="font-size:12px">${r.site}</td><td>${ab}</td><td>${gi}</td><td style="font-family:var(--fh);font-weight:600">${r.clockIn||'—'}</td><td style="font-family:var(--fh);font-weight:600">${r.clockOut||'—'}</td><td style="font-family:var(--fh);color:var(--orange)">${r.dur}</td><td><span class="bdg bg-b">📷 ${r.media}</span></td><td><span class="bdg ${sc}">${r.status==='submitted'?'✅':r.status==='missing'?'⚠️':'📝'} ${r.status}</span></td><td><div style="display:flex;gap:5px"><button class="btn bs bxs" onclick="viewWorkerLog('${r.worker}')">👁️</button>${r.status==='missing'?`<button class="btn bp bxs" onclick="">📱</button>`:''}</div></td>`;
+    tb.appendChild(tr);
+  });
+}
+function filterAdminTbl(){const sf=document.getElementById('sfilt').value,af=document.getElementById('afilt').value;buildAdminTbl(ADMIN_LOGS.filter(r=>(!sf||r.status===sf)&&(!af||r.auth===af||(af==='—'&&r.auth==='—'))));}
+function filterAdmin(){buildAdminTbl(ADMIN_LOGS);}
+
+function buildBuddyAlerts(){
+  document.getElementById('buddyAlerts').innerHTML=[
+    {n:'Tom Nguyen',r:'No biometric verified. Clock-in attempted from unknown device at 08:14.',t:'08:14'},
+    {n:'Luke Chen',r:'PIN used instead of Face ID. GPS showed 420m from site.',t:'07:30'}
+  ].map(a=>`<div class="buddy-alert"><div style="display:flex;justify-content:space-between"><div class="buddy-name">⚠️ ${a.n}</div><span style="font-size:11px;color:var(--soft)">${a.t}</span></div><div class="buddy-reason">${a.r}</div><div style="margin-top:7px;display:flex;gap:5px"><button class="btn bs bxs">📋 Review</button><button class="btn br bxs">🚫 Flag</button></div></div>`).join('');
+}
+function buildLiveStatus(){
+  document.getElementById('liveStatus').innerHTML=ADMIN_LOGS.filter(r=>r.clockIn&&!r.clockOut).map(r=>`<div class="live-row"><span><span class="ldot"></span><strong>${r.worker}</strong></span><span style="font-size:12px;color:var(--soft)">${r.site}</span><span style="font-family:var(--fh);color:var(--green)">${r.clockIn}</span></div>`).join('')||'<div style="font-size:13px;color:var(--soft);padding:6px 0">No workers currently on site</div>';
+}
+function buildAuthBreak(){
+  const tot=ADMIN_LOGS.filter(r=>r.clockIn).length||1;
+  const bars=[{l:'Face ID',n:ADMIN_LOGS.filter(r=>r.auth==='Face ID').length,c:'var(--purple)'},{l:'PIN',n:ADMIN_LOGS.filter(r=>r.auth==='PIN').length,c:'var(--orange)'},{l:'Missing',n:ADMIN_LOGS.filter(r=>r.auth==='—'&&r.status==='missing').length,c:'var(--red)'}];
+  document.getElementById('authBreak').innerHTML=bars.map(b=>`<div class="auth-bar-row"><span class="auth-bar-label">${b.l}</span><div class="auth-bar-bg"><div class="auth-bar-fill" style="width:${Math.round(b.n/tot*100)}%;background:${b.c}"></div></div><span class="auth-bar-val" style="color:${b.c}">${b.n}</span></div>`).join('');
+}
+function buildHrsTbl(){
+  const tb=document.getElementById('hrsTbl');tb.innerHTML='';
+  HRS.forEach(r=>{const tr=document.createElement('tr');tr.innerHTML=`<td><strong>${r.w}</strong></td><td><span class="bdg ${r.t==='Employee'?'bg-b':'bg-o'}" style="font-size:10px">${r.t}</span></td><td style="font-size:12px;color:var(--soft)">${r.mon}</td><td style="font-size:12px;color:var(--soft)">${r.tue}</td><td style="font-size:12px;color:var(--soft)">${r.wed}</td><td style="font-size:12px;color:var(--soft)">${r.thu}</td><td style="font-size:12px;color:var(--soft)">${r.fri}</td><td style="font-family:var(--fh);font-weight:700;color:var(--orange)">${r.tot}</td><td>${r.fl?'<span class="bdg bg-r">⚠️ '+r.fl+' flag</span>':'<span class="bdg bg-g">✅ Clear</span>'}</td>`;tb.appendChild(tr);});
+}
+function buildGPSAudit(){
+  document.getElementById('gpsAudit').innerHTML=GPS_TRAIL.map(g=>{const isIn=g.event==='Clock In';const c=isIn?'var(--green)':'var(--red)';return `<div class="gps-row"><div class="gdot" style="background:${c};box-shadow:0 0 4px ${c}"></div><span style="font-family:var(--fh);font-size:13px;font-weight:600;white-space:nowrap">${g.time}</span><span style="color:var(--soft);flex:1;font-size:12px"><strong style="color:var(--text)">${g.worker}</strong> · ${g.event} · ${g.site}</span><span class="bdg ${isIn?'bg-g':'bg-r'}" style="font-size:10px">📍 ${g.dist}</span><span style="font-size:11px;color:var(--soft)">${g.coords}</span></div>`;}).join('');}
+
+function viewWorkerLog(name){const s=getSubs().find(r=>r.worker===name);if(s){const hasmedia=s.media&&s.media.length;alert(`📋 ${s.worker}\nSite: ${s.site} | Client: ${s.client}\nIn: ${s.clockIn||'—'} | Out: ${s.clockOut||'—'} | Duration: ${s.dur}\nAuth: ${s.auth} | GPS In: ${s.gpsIn}\nMedia: ${hasmedia?s.media.length+' files':'none'}\n\nNotes:\n${s.notes||'(none)'}`);}else{alert(name+' — no submission found');}}
+function exportCSV(){const h=['Worker','Type','Client','Site','Auth','GPS In','GPS Out','Clock In','Clock Out','Duration','Media','Status'];const r=ADMIN_LOGS.map(x=>[x.worker,x.type,x.client,x.site,x.auth,x.gpsIn,x.gpsOut,x.clockIn,x.clockOut,x.dur,x.media,x.status]);const c=[h,...r].map(x=>x.map(v=>`"${v}"`).join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([c],{type:'text/csv'}));a.download='tradequip-'+new Date().toISOString().slice(0,10)+'.csv';a.click();const t=document.getElementById('csvToast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+/* ════════════════════════════════════════
+   TEAM TABLE
+════════════════════════════════════════ */
+function buildTeamTable(){
+  const tb=document.getElementById('teamTbl');tb.innerHTML='';
+  ADMIN_LOGS.forEach(w=>{
+    const sc={submitted:'bg-g',missing:'bg-r',draft:'bg-o'}[w.status];
+    const ab=w.auth==='Face ID'?'<span class="bdg bg-p">😊 Face ID</span>':w.auth==='PIN'?'<span class="bdg bg-o">🔢 PIN</span>':'<span class="bdg bg-r">⚠️ None</span>';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><strong>${w.worker}</strong></td><td><span class="bdg ${w.type==='Employee'?'bg-b':'bg-o'}" style="font-size:10px">${w.type}</span></td><td>${ab}</td><td>${w.gpsIn==='—'?'<span class="bdg bg-r">❌</span>':`<span class="bdg bg-g">📍 ${w.gpsIn}</span>`}</td><td>${w.gpsOut==='—'?'<span class="bdg bg-m">—</span>':`<span class="bdg bg-g">📍 ${w.gpsOut}</span>`}</td><td>${w.clockIn||'—'}</td><td>${w.clockOut||'—'}</td><td><span class="bdg ${sc}">${w.status==='submitted'?'✅ Submitted':w.status==='missing'?'⚠️ Missing':'📝 Draft'}</span></td><td>${w.status==='missing'?`<button class="btn bp bxs">📱</button>`:''}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+/* ════════════════════════════════════════
+   PEOPLE (ADD / EDIT WORKERS)
+════════════════════════════════════════ */
+function buildPeopleList(filter){
+  const workers=getWorkers();
+  const clients=getClients();
+  const el=document.getElementById('peopleList');el.innerHTML='';
+  const filtered=filter==='all'?workers:workers.filter(w=>w.type===filter);
+  if(!filtered.length){el.innerHTML='<div style="font-size:13px;color:var(--soft);text-align:center;padding:20px">No people added yet — click + Add Person</div>';return;}
+  filtered.forEach(w=>{
+    const client=clients.find(c=>c.id===w.client);
+    const d=document.createElement('div');d.className='worker-card';
+    const ini=(w.fname[0]+(w.lname?w.lname[0]:'')).toUpperCase();
+    d.innerHTML=`<div class="wc-av">${ini}</div>
+      <div class="wc-info">
+        <div class="wc-name">${w.fname} ${w.lname}</div>
+        <div class="wc-meta">${w.type==='employee'?'Employee':'Subcontractor'} · ${w.role||'—'} · ${client?client.name:'Any client'}</div>
+        <div class="wc-meta">📱 ${w.phone||'—'} · 📧 ${w.email||'—'}</div>
+      </div>
+      <div class="wc-acts">
+        <button class="btn bs bxs" onclick="editPerson('${w.id}')">✏️ Edit</button>
+        <button class="btn br bxs" onclick="deletePerson('${w.id}')">🗑️</button>
+      </div>`;
+    el.appendChild(d);
+  });
+}
+function setPeopleTab(f,el){document.querySelectorAll('#page-people .tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');buildPeopleList(f);}
+
+function openPersonModal(id){
+  editingPersonId=id||null;
+  populateClientDropdowns();
+  if(id){
+    const w=getWorkers().find(x=>x.id===id);
+    if(!w)return;
+    document.getElementById('personModalTitle').textContent='Edit Person';
+    document.getElementById('pFname').value=w.fname;
+    document.getElementById('pLname').value=w.lname;
+    document.getElementById('pType').value=w.type;
+    document.getElementById('pRole').value=w.role||'';
+    document.getElementById('pPhone').value=w.phone||'';
+    document.getElementById('pEmail').value=w.email||'';
+    document.getElementById('pClient').value=w.client||'';
+    document.getElementById('pPin').value=w.pin||'';
+  } else {
+    document.getElementById('personModalTitle').textContent='Add Person';
+    ['pFname','pLname','pRole','pPhone','pEmail','pPin'].forEach(id2=>document.getElementById(id2).value='');
+    document.getElementById('pType').value='employee';
+    document.getElementById('pClient').value='';
+  }
+  document.getElementById('personModal').style.display='flex';
+}
+function editPerson(id){openPersonModal(id);}
+function deletePerson(id){
+  if(!confirm('Remove this person?'))return;
+  const workers=getWorkers().filter(w=>w.id!==id);
+  lsSet('tq_workers',workers);
+  buildPeopleList('all');
+}
+function savePerson(){
+  const fname=document.getElementById('pFname').value.trim();
+  const lname=document.getElementById('pLname').value.trim();
+  if(!fname){alert('Please enter a first name.');return;}
+  const workers=getWorkers();
+  const person={
+    id:editingPersonId||'w'+Date.now(),
+    fname,lname,
+    type:document.getElementById('pType').value,
+    role:document.getElementById('pRole').value.trim(),
+    phone:document.getElementById('pPhone').value.trim(),
+    email:document.getElementById('pEmail').value.trim(),
+    client:document.getElementById('pClient').value,
+    pin:document.getElementById('pPin').value.trim()
+  };
+  if(editingPersonId){
+    const idx=workers.findIndex(w=>w.id===editingPersonId);
+    if(idx>-1)workers[idx]=person;
+  } else {
+    workers.push(person);
+  }
+  lsSet('tq_workers',workers);
+  closeModal('personModal');
+  buildPeopleList('all');
+}
+
+/* ════════════════════════════════════════
+   CLIENTS & SITES (ADD / EDIT)
+════════════════════════════════════════ */
+function buildClientList(){
+  const clients=getClients();
+  const el=document.getElementById('clientList');el.innerHTML='';
+  if(!clients.length){el.innerHTML='<div style="font-size:13px;color:var(--soft);text-align:center;padding:20px">No clients yet — click + Add Client</div>';return;}
+  clients.forEach(c=>{
+    const card=document.createElement('div');card.className='card';card.style.marginBottom='12px';
+    card.innerHTML=`<div class="fb" style="margin-bottom:12px">
+      <div><div style="font-family:var(--fh);font-size:16px;font-weight:700;color:#fff">${c.name}</div><div style="font-size:12px;color:var(--soft);margin-top:2px">📞 ${c.contact} · ${c.phone} · ${c.email}</div></div>
+      <div style="display:flex;gap:7px">
+        <button class="btn bs bsm" onclick="openClientModal('${c.id}')">✏️ Edit</button>
+        <button class="btn br bsm" onclick="deleteClient('${c.id}')">🗑️</button>
+      </div>
+    </div>
+    <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--soft);margin-bottom:7px">Sites &amp; Geofence</div>
+    <table class="tbl" style="font-size:12px">
+      <thead><tr><th>Site Name</th><th>GPS Coordinates</th><th>Radius</th></tr></thead>
+      <tbody>${(c.sites||[]).map(s=>`<tr><td>${s.name}</td><td style="color:var(--soft)">${s.lat.toFixed(4)}, ${s.lng.toFixed(4)}</td><td><span class="bdg bg-g">${s.r}m</span></td></tr>`).join('')}</tbody>
+    </table>`;
+    el.appendChild(card);
+  });
+}
+
+function openClientModal(id){
+  editingClientId=id||null;
+  const sitesList=document.getElementById('sitesList');sitesList.innerHTML='';
+  if(id){
+    const c=getClients().find(x=>x.id===id);
+    if(!c)return;
+    document.getElementById('clientModalTitle').textContent='Edit Client';
+    document.getElementById('cName').value=c.name;
+    document.getElementById('cContact').value=c.contact||'';
+    document.getElementById('cPhone').value=c.phone||'';
+    document.getElementById('cEmail').value=c.email||'';
+    (c.sites||[]).forEach(s=>addSiteRow(s));
+  } else {
+    document.getElementById('clientModalTitle').textContent='Add Client';
+    ['cName','cContact','cPhone','cEmail'].forEach(i=>document.getElementById(i).value='');
+    addSiteRow();
+  }
+  document.getElementById('clientModal').style.display='flex';
+}
+function addSiteRow(site){
+  const sl=document.getElementById('sitesList');
+  const row=document.createElement('div');row.className='g2';row.style.cssText='gap:8px;margin-bottom:8px;align-items:end';
+  row.innerHTML=`<div class="fg"><label>Site Name</label><input class="si-name" placeholder="Site A – North" value="${site?site.name:''}"/></div>
+    <div class="fg"><label>Radius (m) <span style="font-size:10px;color:var(--soft);text-transform:none;letter-spacing:0">≈ ${site?Math.round(site.r/0.9144)+' yds':'16 yds'} · min 5m</span></label><input class="si-r" type="number" min="5" max="500" step="1" value="${site?site.r:15}" oninput="updateYardLabel(this)" style="width:100%"/></div>
+    <div class="fg"><label>Latitude</label><input class="si-lat" type="number" step="any" placeholder="-33.8688" value="${site?site.lat:''}"/></div>
+    <div class="fg"><label>Longitude</label><input class="si-lng" type="number" step="any" placeholder="151.2093" value="${site?site.lng:''}"/></div>
+    <div style="padding-bottom:2px"><button class="btn br bxs" onclick="this.closest('.g2').remove()">✕</button></div>`;
+  sl.appendChild(row);
+}
+function updateYardLabel(input){
+  const m=parseInt(input.value)||15;
+  const yds=Math.round(m/0.9144);
+  const lbl=input.closest('.fg').querySelector('label span');
+  if(lbl)lbl.textContent=`≈ ${yds} yds · min 5m`;
+}
+function saveClient(){
+  const name=document.getElementById('cName').value.trim();
+  if(!name){alert('Client name required.');return;}
+  const siteRows=document.querySelectorAll('#sitesList .g2');
+  const sites=[];
+  siteRows.forEach(row=>{
+    const n=row.querySelector('.si-name').value.trim();
+    const lat=parseFloat(row.querySelector('.si-lat').value);
+    const lng=parseFloat(row.querySelector('.si-lng').value);
+    const r=parseInt(row.querySelector('.si-r').value)||15;
+    if(n&&!isNaN(lat)&&!isNaN(lng))sites.push({id:'s'+Date.now()+Math.random(),name:n,lat,lng,r});
+  });
+  const clients=getClients();
+  const client={id:editingClientId||'c'+Date.now(),name,contact:document.getElementById('cContact').value.trim(),phone:document.getElementById('cPhone').value.trim(),email:document.getElementById('cEmail').value.trim(),sites};
+  if(editingClientId){const idx=clients.findIndex(c=>c.id===editingClientId);if(idx>-1)clients[idx]=client;}
+  else{clients.push(client);}
+  lsSet('tq_clients',clients);
+  closeModal('clientModal');
+  buildClientList();
+  populateClientDropdowns();
+}
+function deleteClient(id){
+  if(!confirm('Delete this client and all its sites?'))return;
+  lsSet('tq_clients',getClients().filter(c=>c.id!==id));
+  buildClientList();populateClientDropdowns();
+}
+
+/* ════════════════════════════════════════
+   MODULES
+════════════════════════════════════════ */
+function applyMods(){
+  Object.keys(MOD).forEach(k=>{const e=document.getElementById('mod-'+k);if(e)MOD[k]=e.checked;});
+  document.getElementById('clockWrap').style.opacity=MOD.clock?'1':'0.4';
+  document.getElementById('clockWrap').style.pointerEvents=MOD.clock?'':'none';
+  document.getElementById('voiceSec').style.opacity=MOD.voice?'1':'0.4';
+  document.getElementById('mediaSec').style.opacity=MOD.media?'1':'0.4';
+  document.getElementById('pinTab').style.display=MOD.pin?'':'none';
+}
+
+/* ════════════════════════════════════════
+   REMINDERS
+════════════════════════════════════════ */
+function buildReminders(){
+  const el=document.getElementById('reminderList');el.innerHTML='';
+  ADMIN_LOGS.filter(w=>w.status==='missing').forEach(w=>{
+    const d=document.createElement('div');d.style.cssText='background:var(--dark);border:1px solid var(--bdr);border-radius:var(--r);padding:11px 13px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px';
+    const ini=w.worker.split(' ').map(x=>x[0]).join('');
+    d.innerHTML=`<div style="display:flex;align-items:center;gap:9px"><div style="width:32px;height:32px;border-radius:50%;background:var(--muted);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:700;font-size:12px">${ini}</div><div><div style="font-weight:600;font-size:14px">${w.worker}</div><div style="font-size:12px;color:var(--soft)">${w.type} · ${w.site}</div></div></div><div style="display:flex;gap:6px"><button class="btn bs bxs" onclick="sendRem(this)">📧 Email</button><button class="btn bp bxs" onclick="sendRem(this)">📱 SMS</button></div>`;
+    el.appendChild(d);
+  });
+}
+function buildNotif(){
+  document.getElementById('notifList').innerHTML=ADMIN_LOGS.filter(w=>w.status==='missing').map(w=>`<div style="background:var(--dark);border:1px solid var(--bdr);border-radius:var(--r);padding:9px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center"><span style="font-weight:600">${w.worker}</span><span class="bdg bg-r">⚠️ No submission</span></div>`).join('');
+}
+function sendRem(b){b.textContent='✅';b.disabled=true;setTimeout(()=>{b.textContent=b.textContent.includes('📱')?'📱 SMS':'📧 Email';b.disabled=false;},2500);}
+function sendAll(){const b=event.currentTarget;b.textContent='📨 Sending…';setTimeout(()=>{b.textContent='✅ All Sent!';b.className='btn bg';},2000);}
+function showNotif(){document.getElementById('notifOvl').style.display='flex';}
+function setTab(el){document.querySelectorAll('.tabs .tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');}
+
+/* MISC */
+function closeModal(id){document.getElementById(id).style.display='none';}
+function showToast(msg){const t=document.getElementById('csvToast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+</script>
+</body>
+</html>
