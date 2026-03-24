@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#f47c1c"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="TradeQuip"/>
 <meta name="application-name" content="TradeQuip Logger"/>
 <link rel="manifest" href="manifest.json"/>
@@ -14,6 +14,17 @@
 <title>TradeQuip – Daily Activity Logger</title>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
+/* iPhone PWA safe area fix */
+@supports(padding-top: env(safe-area-inset-top)){
+  .topbar{
+    padding-top: env(safe-area-inset-top);
+    height: calc(58px + env(safe-area-inset-top));
+  }
+  .sb{
+    top: calc(58px + env(safe-area-inset-top));
+    height: calc(100vh - 58px - env(safe-area-inset-top));
+  }
+}
 :root{
   --black:#0d0f10;--dark:#13181c;--card:#1a2128;--bdr:#253040;
   --muted:#3a4a5c;--text:#c8d8e8;--soft:#8099b2;
@@ -26,7 +37,7 @@
 html,body{height:100%;background:var(--black);color:var(--text);font-family:var(--fb);font-size:15px;}
 /* LAYOUT */
 .shell{display:flex;min-height:100vh;flex-direction:column;}
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 22px;padding-top:env(safe-area-inset-top,0px);height:calc(58px + env(safe-area-inset-top,0px));background:var(--dark);border-bottom:1px solid var(--bdr);position:sticky;top:0;z-index:300;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 22px;height:58px;background:var(--dark);border-bottom:1px solid var(--bdr);position:sticky;top:0;z-index:300;}
 .logo{display:flex;align-items:center;gap:8px;}
 .lmark{width:32px;height:32px;border-radius:8px;background:var(--orange);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:700;font-size:16px;color:#fff;box-shadow:0 0 14px var(--og);}
 .ltxt{font-family:var(--fh);font-size:19px;font-weight:700;letter-spacing:1px;color:#fff;}
@@ -37,7 +48,7 @@ html,body{height:100%;background:var(--black);color:var(--text);font-family:var(
 .av{width:32px;height:32px;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:700;font-size:12px;color:#fff;cursor:pointer;position:relative;flex-shrink:0;}
 .av-v{position:absolute;bottom:-2px;right:-2px;width:12px;height:12px;border-radius:50%;background:var(--green);border:2px solid var(--dark);font-size:6px;display:flex;align-items:center;justify-content:center;}
 .main{display:flex;flex:1;}
-.sb{width:210px;background:var(--dark);border-right:1px solid var(--bdr);padding:16px 0;display:flex;flex-direction:column;position:sticky;top:calc(58px + env(safe-area-inset-top,0px));height:calc(100vh - 58px - env(safe-area-inset-top,0px));overflow-y:auto;flex-shrink:0;}
+.sb{width:210px;background:var(--dark);border-right:1px solid var(--bdr);padding:16px 0;display:flex;flex-direction:column;position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto;flex-shrink:0;}
 .ns{padding:11px 18px 3px;font-size:10px;letter-spacing:1.3px;text-transform:uppercase;color:var(--muted);font-weight:700;}
 .ni{display:flex;align-items:center;gap:8px;padding:9px 18px;cursor:pointer;transition:all .14s;font-size:13px;font-weight:500;color:var(--soft);border-left:3px solid transparent;}
 .ni:hover{color:var(--text);background:rgba(255,255,255,.03);}
