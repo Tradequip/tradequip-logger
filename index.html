@@ -23,10 +23,9 @@
   --r:10px;--rl:16px;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-html,body{height:100%;background:var(--black);color:var(--text);font-family:var(--fb);font-size:15px;}
-/* LAYOUT */
-.shell{display:flex;min-height:100vh;flex-direction:column;}
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 22px;height:58px;background:var(--dark);border-bottom:1px solid var(--bdr);position:sticky;top:0;z-index:300;}
+html,body{height:100%;width:100%;overflow:hidden;background:var(--black);color:var(--text);font-family:var(--fb);font-size:15px;}
+.shell{display:flex;flex-direction:column;height:100vh;height:-webkit-fill-available;overflow:hidden;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 22px;height:58px;min-height:58px;background:var(--dark);border-bottom:1px solid var(--bdr);z-index:300;flex-shrink:0;}
 .logo{display:flex;align-items:center;gap:8px;}
 .lmark{width:32px;height:32px;border-radius:8px;background:var(--orange);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:700;font-size:16px;color:#fff;box-shadow:0 0 14px var(--og);}
 .ltxt{font-family:var(--fh);font-size:19px;font-weight:700;letter-spacing:1px;color:#fff;}
@@ -36,8 +35,8 @@ html,body{height:100%;background:var(--black);color:var(--text);font-family:var(
 .pill:hover{border-color:var(--orange);color:var(--orange);}
 .av{width:32px;height:32px;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:700;font-size:12px;color:#fff;cursor:pointer;position:relative;flex-shrink:0;}
 .av-v{position:absolute;bottom:-2px;right:-2px;width:12px;height:12px;border-radius:50%;background:var(--green);border:2px solid var(--dark);font-size:6px;display:flex;align-items:center;justify-content:center;}
-.main{display:flex;flex:1;}
-.sb{width:210px;background:var(--dark);border-right:1px solid var(--bdr);padding:16px 0;display:flex;flex-direction:column;position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto;flex-shrink:0;}
+.main{display:flex;flex:1;overflow:hidden;position:relative;}
+.sb{width:210px;background:var(--dark);border-right:1px solid var(--bdr);padding:16px 0;display:flex;flex-direction:column;height:100%;overflow-y:auto;flex-shrink:0;}
 .ns{padding:11px 18px 3px;font-size:10px;letter-spacing:1.3px;text-transform:uppercase;color:var(--muted);font-weight:700;}
 .ni{display:flex;align-items:center;gap:8px;padding:9px 18px;cursor:pointer;transition:all .14s;font-size:13px;font-weight:500;color:var(--soft);border-left:3px solid transparent;}
 .ni:hover{color:var(--text);background:rgba(255,255,255,.03);}
@@ -245,7 +244,7 @@ select option{background:var(--dark);}
   .stats{grid-template-columns:1fr 1fr;}
   .g2{grid-template-columns:1fr;}
   .bnav{display:block;}
-  .main{padding-bottom:66px;}
+  .content{padding-bottom:80px;}
 }
 @media(max-width:560px){
   .topbar{padding:0 12px;height:52px;}
@@ -269,7 +268,6 @@ select option{background:var(--dark);}
   <div class="logo" style="display:flex;align-items:center;gap:8px;">
   <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAmACYDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD3uWURgcFmPRR3qrKtwyl5HWNQMkFsACluLhYIXnLKuc/MxwFUdTnt61ws13J4pvoodzJpTOAitwbjn77j+53C9+p7AaU6UqjsjjxuOp4Onzz3eiXVvsjaHiCxaXbDJJMoOPNjXKH6McZ/DNa9pqXmIHV/MjP5iuf8UTW9r4dfToQvnXDqlooHzBgwO/6KMkn8O+K2PDtiEsHadcGR8gHjAxVuEPZuSve/3nLDE4pY2NCfK04tuyd49tb639F6G4jq6hlOQaKqwypFM8YUqo9T3orA9Yoarp0Wr6N9lnL+WGG8KcZwQcH1HAyDwa4e0V7W+1CNHZJYr2UAnnaM5Xr/ALJWvRJ99vMzJ91+vpWJdaNa3d39pLNDMwCu6DIYDpke3r1rpw1ZU5e9szxc7y6eMoJ0NKkWmvl0v+PqiTSfDsEc6ajPKbyZ1DGaQ7j7D6ew49qh1HX0hvktLRDd3ZkG6NG+WIE8lj2PovU+w5px8N3BjMcd8WhPUKSAfwzV3TtFtNIAchdw6AAfyHSnP2d7uV/K1iML9c5OSNH2be8nJS+fVt9r6fkXLkFrjgYYqCR6UVPbIzs87jl+g9qK5T3Sw6K6lWGQaozWZQFkYFfQ0UUAV1Vi2AcH61chsgCGkO72FFFAFyiiigD/2Q==" alt="TradeQuip" style="height:36px;width:36px;object-fit:contain;display:block;border-radius:50%;" />
   <div style="font-family:var(--fh);font-size:19px;font-weight:700;letter-spacing:1px;color:#fff;">TRADE<span style="color:cyan">e</span>QUIP</div>
-</div>
 </div>
   <div class="tbr">
     <span class="pill" id="todayPill"></span>
