@@ -1,0 +1,25 @@
+{
+  "name": "TradeQuip Logger",
+  "short_name": "TradeQuip",
+  "description": "Daily activity logging for onsite workers",
+  "start_url": "/tradequip-logger/",
+  "scope": "/tradequip-logger/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d0f10",
+  "theme_color": "#f47c1c",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
