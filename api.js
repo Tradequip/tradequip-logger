@@ -8,7 +8,7 @@ const http = require('http');
 const { Pool } = require('pg');
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:xZgImDQHXLNOSutWQGdJtReTBiEcQzoQ@crossover.proxy.rlwy.net:20741/railway',
   ssl: { rejectUnauthorized: false }
 });
 
