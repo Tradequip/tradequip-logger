@@ -675,34 +675,37 @@ select option{background:var(--dark);}
 <!-- BIO OVERLAY -->
 <div class="bio-ovl" id="bioOvl" style="display:none">
   <div class="bio-box">
-    <div class="bio-title">Identity Verification</div>
-    <div class="bio-sub">Confirm who you are before clocking in.<br>Prevents buddy punching on site.</div>
-    <div class="bio-tabs"><div class="bio-tab on" onclick="setBioM('face',this)">😊 Face ID</div><div class="bio-tab" id="pinTab" onclick="setBioM('pin',this)">🔢 PIN</div></div>
-    <div id="facePanel">
+    <!-- SCREEN 1: Face ID scan (shows when device is registered) -->
+    <div id="bioScreenFace">
+      <div class="bio-title">Face ID</div>
+      <div class="bio-sub" id="bioFaceSub">Verifying your identity…</div>
       <div class="fr"><div class="fr-o"></div><div class="fr-s" id="frS"></div><div class="fi"><div class="fe" id="faceE">😐</div><div class="fdots"><div class="fd"></div><div class="fd"></div><div class="fd"></div><div class="fd"></div></div></div><div class="fc tl"></div><div class="fc tr"></div><div class="fc bl"></div><div class="fc br"></div></div>
-      <div class="bst" id="bioSt" style="color:var(--soft)">Tap Start Scan to begin.</div>
-      <div style="display:flex;gap:8px;justify-content:center"><button class="btn bp bsm" id="scanBtn" onclick="startScan()">📷 Start Scan</button><button class="btn bs bsm" onclick="closeBio()">Cancel</button></div>
+      <div class="bst" id="bioSt" style="color:var(--soft)"></div>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+        <button class="btn bs bsm" onclick="closeBio()">Cancel</button>
+        <button class="btn bs bsm" onclick="switchToPin()">🔢 Use PIN instead</button>
+        <button class="btn br bsm" onclick="unregisterDevice()" id="unregBtn" style="display:none">↩ Not me</button>
+      </div>
     </div>
-    <div id="pinPanel" style="display:none">
-      <!-- STEP 1: Pick your name -->
-      <div id="pinStep1">
-        <div style="font-size:13px;color:var(--soft);margin-bottom:10px">Who are you?</div>
-        <div id="workerPickList" style="display:flex;flex-direction:column;gap:7px;max-height:220px;overflow-y:auto;margin-bottom:12px"></div>
-        <button class="btn bs bsm" style="width:100%;justify-content:center" onclick="closeBio()">Cancel</button>
+    <!-- SCREEN 2: First time setup — pick your name -->
+    <div id="bioScreenPick" style="display:none">
+      <div class="bio-title">Who are you?</div>
+      <div class="bio-sub">Select your name to register this device.<br>After this, Face ID will log you in automatically.</div>
+      <div id="workerPickList" style="display:flex;flex-direction:column;gap:7px;max-height:240px;overflow-y:auto;margin-bottom:12px"></div>
+      <button class="btn bs bsm" style="width:100%;justify-content:center" onclick="closeBio()">Cancel</button>
+    </div>
+    <!-- SCREEN 3: PIN entry -->
+    <div id="bioScreenPin" style="display:none">
+      <div class="bio-title" id="pinTitle">Enter your PIN</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;cursor:pointer;padding:4px 0" id="pinWorkerRow" onclick="backToPick()">
+        <div id="pinWorkerAv" style="width:30px;height:30px;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:700;font-size:12px;color:#fff;flex-shrink:0"></div>
+        <div id="pinWorkerName" style="font-size:14px;font-weight:600;color:var(--orange)"></div>
+        <span style="font-size:11px;color:var(--soft);margin-left:2px" id="pinChangeHint">(not you? tap)</span>
       </div>
-      <!-- STEP 2: Enter PIN -->
-      <div id="pinStep2" style="display:none">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;cursor:pointer;padding:6px 0" onclick="backToNamePick()">
-          <span style="font-size:18px;color:var(--soft)">←</span>
-          <div id="selectedWorkerName" style="font-size:14px;font-weight:600;color:var(--orange)"></div>
-          <span style="font-size:12px;color:var(--soft);margin-left:4px">(not you? tap to change)</span>
-        </div>
-        <div style="font-size:13px;color:var(--soft);margin-bottom:10px">Enter your 4-digit PIN</div>
-        <div class="pin-disp" id="pinDisp"><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div></div>
-        <div class="pin-grid" id="pinGrid"></div>
-        <div class="bst" id="pinSt" style="color:var(--soft);margin-top:2px"></div>
-        <button class="btn bs bsm" style="margin-top:8px;width:100%;justify-content:center" onclick="closeBio()">Cancel</button>
-      </div>
+      <div class="pin-disp" id="pinDisp"><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div></div>
+      <div class="pin-grid" id="pinGrid"></div>
+      <div class="bst" id="pinSt" style="color:var(--soft);margin-top:2px"></div>
+      <button class="btn bs bsm" style="margin-top:8px;width:100%;justify-content:center" onclick="closeBio()">Cancel</button>
     </div>
   </div>
 </div>
@@ -873,13 +876,8 @@ startAutoGeo();
 buildHistTable();buildTeamTable();buildAdminPage();buildReminders();buildNotif();
 buildPeopleList('all');buildClientList();
 
-// Auto-trigger biometric verification on load — fires immediately like iPhone apps
-setTimeout(()=>{
-  if(!bioVerified){
-    triggerBio('clockin');
-    setTimeout(startScan, 500);
-  }
-},800);
+// Auto-trigger identity verification on load
+setTimeout(()=>{if(!bioVerified)triggerBio('clockin');},800);
 
 /* ════════════════════════════════════════
    NAV
@@ -1169,166 +1167,134 @@ function viewerNav(dir){viewerIdx=(viewerIdx+dir+viewerMedia.length)%viewerMedia
 function closeViewer(){document.getElementById('mediaViewer').style.display='none';document.getElementById('mvVid').pause();}
 
 /* ════════════════════════════════════════
-   BIOMETRIC AUTH
+   BIOMETRIC AUTH — DEVICE REGISTRATION SYSTEM
+   Flow:
+   1. First time: worker picks name → enters PIN → device registered
+   2. Every time after: Face ID fires automatically
+   3. "Not me" button lets someone unregister
 ════════════════════════════════════════ */
+
+function getRegisteredWorker(){try{return JSON.parse(localStorage.getItem('tq_device_worker'));}catch(e){return null;}}
+function registerDevice(worker){localStorage.setItem('tq_device_worker',JSON.stringify({id:worker.id,fname:worker.fname,lname:worker.lname,ini:(worker.fname[0]+(worker.lname?worker.lname[0]:'')).toUpperCase()}));}
+function unregisterDevice(){localStorage.removeItem('tq_device_worker');localStorage.removeItem('tq_cred_id');closeBio();setTimeout(()=>triggerBio(bioAction),300);}
+
 function triggerBio(action){
   bioAction=action;
   document.getElementById('bioOvl').style.display='flex';
-  setBioM('face',document.querySelector('.bio-tab.on'));
-  document.getElementById('bioSt').textContent='Tap Start Scan to begin.';
-  document.getElementById('bioSt').style.color='var(--soft)';
-  document.getElementById('scanBtn').style.display='';
-  document.getElementById('frS').className='fr-s';
-  document.getElementById('faceE').textContent='😐';
   resetDots();
+  const reg=getRegisteredWorker();
+  if(reg){
+    showBioScreen('face');
+    document.getElementById('bioFaceSub').textContent='Verifying as '+reg.fname+' '+reg.lname;
+    document.getElementById('unregBtn').style.display='';
+    document.getElementById('bioSt').textContent='';
+    document.getElementById('faceE').textContent='😐';
+    document.getElementById('frS').className='fr-s';
+    setTimeout(startFaceID,600);
+  } else {
+    showBioScreen('pick');
+    buildWorkerPicker();
+  }
 }
-function closeBio(){document.getElementById('bioOvl').style.display='none';pinEntry='';selectedWorker=null;refreshPinDisp();document.getElementById('pinSt').textContent='';}
+
+function showBioScreen(s){
+  document.getElementById('bioScreenFace').style.display=s==='face'?'':'none';
+  document.getElementById('bioScreenPick').style.display=s==='pick'?'':'none';
+  document.getElementById('bioScreenPin').style.display=s==='pin'?'':'none';
+}
+
+function switchToPin(){
+  const reg=getRegisteredWorker();
+  if(reg){
+    showBioScreen('pin');
+    document.getElementById('pinTitle').textContent='Enter your PIN';
+    document.getElementById('pinWorkerAv').textContent=reg.ini;
+    document.getElementById('pinWorkerName').textContent=reg.fname+' '+reg.lname;
+    document.getElementById('pinChangeHint').style.display='none';
+    pinEntry='';refreshPinDisp();
+    document.getElementById('pinSt').textContent='';
+    selectedWorker=getWorkers().find(w=>w.id===reg.id)||null;
+  } else {
+    showBioScreen('pick');buildWorkerPicker();
+  }
+}
+
+function closeBio(){document.getElementById('bioOvl').style.display='none';pinEntry='';selectedWorker=null;try{document.getElementById('pinSt').textContent='';}catch(e){}}
 let selectedWorker=null;
 
-function setBioM(m,el){
-  document.querySelectorAll('.bio-tab').forEach(t=>t.classList.remove('on'));
-  if(el)el.classList.add('on');
-  document.getElementById('facePanel').style.display=m==='face'?'':'none';
-  document.getElementById('pinPanel').style.display=m==='pin'?'':'none';
-  if(m==='pin'){
-    pinEntry='';
-    selectedWorker=null;
-    refreshPinDisp();
-    buildWorkerPicker();
-    document.getElementById('pinStep1').style.display='';
-    document.getElementById('pinStep2').style.display='none';
-    document.getElementById('pinSt').textContent='';
-  }
+/* ── FACE ID ── */
+function startFaceID(){
+  document.getElementById('frS').className='fr-s sp';
+  document.getElementById('bioSt').textContent='Look at your phone…';
+  document.getElementById('bioSt').style.color='var(--soft)';
+  const credIdStr=localStorage.getItem('tq_cred_id');
+  if(!window.PublicKeyCredential||!credIdStr){switchToPin();return;}
+  PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(avail=>{
+    if(!avail){switchToPin();return;}
+    const challenge=new Uint8Array(32);crypto.getRandomValues(challenge);
+    let credId;
+    try{credId=Uint8Array.from(atob(credIdStr),c=>c.charCodeAt(0));}catch(e){localStorage.removeItem('tq_cred_id');switchToPin();return;}
+    navigator.credentials.get({publicKey:{challenge,timeout:30000,userVerification:'required',rpId:location.hostname||'tradequip.github.io',allowCredentials:[{id:credId,type:'public-key',transports:['internal']}]}})
+    .then(()=>{
+      const reg=getRegisteredWorker();
+      const w=reg?(getWorkers().find(w=>w.id===reg.id)||reg):null;
+      onBioOk('Face ID',w);
+    })
+    .catch(err=>{
+      if(err.name==='NotAllowedError'||err.name==='AbortError'){document.getElementById('bioSt').textContent='Cancelled';setTimeout(switchToPin,500);}
+      else{switchToPin();}
+    });
+  }).catch(()=>switchToPin());
 }
 
+async function registerFaceID(worker){
+  if(!window.PublicKeyCredential)return false;
+  const avail=await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().catch(()=>false);
+  if(!avail)return false;
+  try{
+    const challenge=new Uint8Array(32);crypto.getRandomValues(challenge);
+    const userId=new TextEncoder().encode(worker.id||worker.fname+worker.lname);
+    const cred=await navigator.credentials.create({publicKey:{challenge,rp:{name:'TradeQuip',id:location.hostname||'tradequip.github.io'},user:{id:userId,name:worker.fname+' '+worker.lname,displayName:worker.fname+' '+worker.lname},pubKeyCredParams:[{alg:-7,type:'public-key'},{alg:-257,type:'public-key'}],authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'preferred'},timeout:30000}});
+    const credId=btoa(String.fromCharCode(...new Uint8Array(cred.rawId)));
+    localStorage.setItem('tq_cred_id',credId);
+    return true;
+  }catch(e){return false;}
+}
+
+/* ── WORKER PICKER ── */
 function buildWorkerPicker(){
-  const list=document.getElementById('workerPickList');
-  list.innerHTML='';
+  const list=document.getElementById('workerPickList');list.innerHTML='';
   const workers=getWorkers();
-  if(!workers.length){
-    list.innerHTML='<div style="font-size:13px;color:var(--soft);text-align:center;padding:10px">No workers added yet.<br>Go to People → Add Person first.</div>';
-    return;
-  }
+  if(!workers.length){list.innerHTML='<div style="font-size:13px;color:var(--soft);text-align:center;padding:10px">No workers added yet.<br>Go to People → Add Person first.</div>';return;}
   workers.forEach(w=>{
     const btn=document.createElement('button');
     const ini=(w.fname[0]+(w.lname?w.lname[0]:'')).toUpperCase();
     btn.style.cssText='display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;background:var(--dark);border:1px solid var(--bdr);border-radius:var(--r);cursor:pointer;transition:all .15s;text-align:left;';
-    btn.innerHTML=`<div style="width:32px;height:32px;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:700;font-size:13px;color:#fff;flex-shrink:0">${ini}</div>
-      <div>
-        <div style="font-weight:600;font-size:14px;color:var(--text)">${w.fname} ${w.lname}</div>
-        <div style="font-size:12px;color:var(--soft)">${w.type==='employee'?'Employee':'Subcontractor'}${w.role?' · '+w.role:''}</div>
-      </div>`;
-    btn.onclick=()=>selectWorker(w);
+    btn.innerHTML=`<div style="width:32px;height:32px;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:700;font-size:13px;color:#fff;flex-shrink:0">${ini}</div><div><div style="font-weight:600;font-size:14px;color:var(--text)">${w.fname} ${w.lname}</div><div style="font-size:12px;color:var(--soft)">${w.type==='employee'?'Employee':'Subcontractor'}${w.role?' · '+w.role:''}</div></div>`;
+    btn.onclick=()=>selectWorkerForReg(w);
     btn.onmouseover=()=>btn.style.borderColor='var(--orange)';
     btn.onmouseout=()=>btn.style.borderColor='var(--bdr)';
     list.appendChild(btn);
   });
 }
 
-function selectWorker(w){
-  selectedWorker=w;
-  pinEntry='';
-  refreshPinDisp();
-  document.getElementById('pinStep1').style.display='none';
-  document.getElementById('pinStep2').style.display='';
-  document.getElementById('selectedWorkerName').textContent=w.fname+' '+w.lname;
+function selectWorkerForReg(w){
+  selectedWorker=w;pinEntry='';refreshPinDisp();
+  showBioScreen('pin');
+  document.getElementById('pinTitle').textContent='Confirm your PIN';
+  document.getElementById('pinWorkerAv').textContent=(w.fname[0]+(w.lname?w.lname[0]:'')).toUpperCase();
+  document.getElementById('pinWorkerName').textContent=w.fname+' '+w.lname;
+  document.getElementById('pinChangeHint').style.display='';
   document.getElementById('pinSt').textContent='';
 }
 
-function backToNamePick(){
-  selectedWorker=null;
-  pinEntry='';
-  refreshPinDisp();
-  document.getElementById('pinStep1').style.display='';
-  document.getElementById('pinStep2').style.display='none';
-  document.getElementById('pinSt').textContent='';
+function backToPick(){
+  selectedWorker=null;pinEntry='';refreshPinDisp();
+  const reg=getRegisteredWorker();
+  if(reg){showBioScreen('face');}else{showBioScreen('pick');buildWorkerPicker();}
 }
 
-function startScan(){
-  document.getElementById('scanBtn').style.display='none';
-  document.getElementById('frS').className='fr-s sp';
-  document.getElementById('bioSt').textContent='Verifying your identity…';
-  document.getElementById('bioSt').style.color='var(--soft)';
-  // Use device biometrics directly — no passkey registration, no QR code
-  // This triggers Face ID / Touch ID natively on iPhone/Android
-  if(window.PublicKeyCredential&&window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable){
-    PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(avail=>{
-      if(avail){doNativeBio();}else{doSim();}
-    }).catch(()=>doSim());
-  } else {doSim();}
-}
-
-function doNativeBio(){
-  // This uses the device's local biometric (Face ID / fingerprint)
-  // WITHOUT needing a registered passkey — just a local verification
-  document.getElementById('bioSt').textContent='Look at your phone…';
-  // Fallback: use the Web Authentication local check
-  // If device has Face ID it will prompt Face ID, no QR code
-  const challenge=new Uint8Array(32);
-  crypto.getRandomValues(challenge);
-  // Use conditional mediation to check local device biometric only
-  navigator.credentials.get({
-    publicKey:{
-      challenge,
-      timeout:30000,
-      userVerification:'required',
-      rpId:location.hostname,
-      allowCredentials:[] // empty = just verify the device user, no specific credential needed
-    }
-  }).then(()=>{
-    onBioOk('Face ID');
-  }).catch(err=>{
-    // Any error — just fall through to PIN, don't show QR
-    if(err.name==='NotAllowedError'||err.name==='AbortError'){
-      // User cancelled — show PIN
-      closeBio();
-      triggerBio(bioAction);
-      setTimeout(()=>setBioM('pin',document.querySelector('.bio-tab:last-child')),100);
-    } else {
-      // Device doesn't support or no credential — go to PIN
-      doSim();
-    }
-  });
-}
-
-function doSim(){
-  // Demo mode — animates scan then verifies first worker
-  // In production this would match against enrolled workers
-  const dots=document.querySelectorAll('.fd');
-  let i=0;
-  document.getElementById('bioSt').textContent='Scanning… hold still';
-  const iv=setInterval(()=>{
-    if(i<dots.length){dots[i].classList.add('lit');i++;}
-    else{
-      clearInterval(iv);
-      setTimeout(()=>onBioOk('Face ID (Demo)',getWorkers()[0]),400);
-    }
-  },250);
-}
-function onBioOk(method,w){
-  if(!w)w=getWorkers()[0];
-  currentUser=w;bioVerified=true;
-  document.querySelectorAll('.fd').forEach(d=>{d.classList.remove('lit');d.classList.add('ok');});
-  document.getElementById('frS').className='fr-s ok';
-  document.getElementById('faceE').textContent='😊';
-  document.getElementById('bioSt').style.color='var(--green)';
-  document.getElementById('bioSt').textContent='Verified — '+(w.fname+' '+w.lname);
-  setTimeout(()=>{closeBio();applyBioOk(w,method);if(bioAction==='clockin')proceedClock('in');else if(bioAction==='clockout')proceedClock('out');},700);
-}
-function applyBioOk(w,method){
-  document.getElementById('avInit').textContent=(w.fname[0]+(w.lname?w.lname[0]:'')).toUpperCase();
-  document.getElementById('avV').style.display='flex';
-  document.getElementById('workerDisplay').textContent=w.fname+' '+w.lname;
-  document.getElementById('bioBanner').style.display='none';
-  document.getElementById('bioOkBanner').style.display='flex';
-  document.getElementById('bioOkName').textContent=w.fname+' '+w.lname;
-  document.getElementById('bioOkMethod').textContent=method;
-  document.getElementById('bioOkTime').textContent=fmt(new Date());
-  refreshCkBtns();
-}
-function resetDots(){document.querySelectorAll('.fd').forEach(d=>{d.className='fd';});}
-
-/* PIN */
+/* ── PIN ── */
 function buildPinGrid(){
   const g=document.getElementById('pinGrid');
   [1,2,3,4,5,6,7,8,9,'⌫',0,'✓'].forEach(k=>{
@@ -1345,26 +1311,51 @@ function pinPress(k){
 }
 function refreshPinDisp(){document.querySelectorAll('.pin-dot').forEach((d,i)=>d.classList.toggle('filled',i<pinEntry.length));}
 function checkPin(){
-  if(!selectedWorker){
-    document.getElementById('pinSt').style.color='var(--red)';
-    document.getElementById('pinSt').textContent='Please select your name first';
-    pinEntry='';refreshPinDisp();return;
-  }
-  if(pinEntry===selectedWorker.pin){
+  const workers=getWorkers();
+  const w=selectedWorker
+    ?workers.find(x=>x.id===selectedWorker.id&&x.pin===pinEntry)
+    :workers.find(x=>x.pin===pinEntry);
+  if(w){
     document.getElementById('pinSt').style.color='var(--green)';
-    document.getElementById('pinSt').textContent='✅ Verified — '+selectedWorker.fname+' '+selectedWorker.lname;
-    setTimeout(()=>{
+    document.getElementById('pinSt').textContent='✅ Verified — '+w.fname+' '+w.lname;
+    setTimeout(async()=>{
+      registerDevice(w);
+      const faceReg=await registerFaceID(w);
       closeBio();
-      applyBioOk(selectedWorker,'PIN');
+      applyBioOk(w,faceReg?'PIN (Face ID registered for next time)':'PIN');
       if(bioAction==='clockin')proceedClock('in');
       else if(bioAction==='clockout')proceedClock('out');
     },600);
-  } else {
+  }else{
     document.getElementById('pinSt').style.color='var(--red)';
-    document.getElementById('pinSt').textContent='❌ Wrong PIN — try again';
+    document.getElementById('pinSt').textContent='❌ Incorrect PIN';
     pinEntry='';refreshPinDisp();
   }
 }
+
+function onBioOk(method,w){
+  if(!w){const r=getRegisteredWorker();w=r||(getWorkers()[0]||{fname:'Worker',lname:'',id:'?'});}
+  currentUser=w;bioVerified=true;
+  document.querySelectorAll('.fd').forEach(d=>{d.classList.remove('lit');d.classList.add('ok');});
+  document.getElementById('frS').className='fr-s ok';
+  document.getElementById('faceE').textContent='😊';
+  document.getElementById('bioSt').style.color='var(--green)';
+  document.getElementById('bioSt').textContent='Verified — '+(w.fname+' '+w.lname);
+  setTimeout(()=>{closeBio();applyBioOk(w,method);if(bioAction==='clockin')proceedClock('in');else if(bioAction==='clockout')proceedClock('out');},700);
+}
+function applyBioOk(w,method){
+  const ini=(w.fname[0]+(w.lname?w.lname[0]:'')).toUpperCase();
+  document.getElementById('avInit').textContent=ini;
+  document.getElementById('avV').style.display='flex';
+  document.getElementById('workerDisplay').textContent=w.fname+' '+w.lname;
+  document.getElementById('bioBanner').style.display='none';
+  document.getElementById('bioOkBanner').style.display='flex';
+  document.getElementById('bioOkName').textContent=w.fname+' '+w.lname;
+  document.getElementById('bioOkMethod').textContent=method;
+  document.getElementById('bioOkTime').textContent=fmt(new Date());
+  currentUser=w;bioVerified=true;refreshCkBtns();
+}
+function resetDots(){document.querySelectorAll('.fd').forEach(d=>{d.className='fd';});}
 
 /* ════════════════════════════════════════
    VOICE
