@@ -648,7 +648,12 @@ select option{background:var(--dark);}
       <div class="fg" style="margin-bottom:13px"><label>GPS Accuracy</label><select><option>High (GPS chip)</option><option>Medium (GPS + WiFi)</option></select></div>
       <button class="btn bp bsm">💾 Save</button>
     </div>
-    <div class="card"><div class="ct">🐙 GitHub</div>
+    <div class="card"><div class="ct">🔌 Backend API</div>
+      <div class="fg" style="margin-bottom:10px"><label>Railway API URL</label><input id="apiUrlInput" placeholder="https://your-app.railway.app" value=""/></div>
+      <div style="font-size:12px;color:var(--soft);margin-bottom:13px">Your Railway deployment URL — all worker, client and submission data saves here permanently across all devices.</div>
+      <button class="btn bp bsm" onclick="saveApiUrl()">💾 Save &amp; Sync</button>
+      <span id="apiStatus" style="font-size:12px;color:var(--soft);margin-left:10px"></span>
+    </div>
       <div class="fg" style="margin-bottom:10px"><label>Token</label><input type="password" placeholder="ghp_xxxx"/></div>
       <div class="fg" style="margin-bottom:10px"><label>Repository</label><input placeholder="your-org/tradequip-logger"/></div>
       <div class="fg" style="margin-bottom:13px"><label>Branch</label><input value="main"/></div>
@@ -788,8 +793,25 @@ select option{background:var(--dark);}
 
 <script>
 /* ════════════════════════════════════════
-   PERSISTENT DATA STORE (localStorage)
+   API CONFIG
 ════════════════════════════════════════ */
+// Your Railway API URL — update this after deploying
+const API = localStorage.getItem('tq_api_url') || '';
+
+async function apiGet(path){
+  if(!API) return null;
+  try{const r=await fetch(API+path);return await r.json();}catch(e){console.warn('API unavailable, using localStorage');return null;}
+}
+async function apiPost(path,data){
+  if(!API) return null;
+  try{const r=await fetch(API+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});return await r.json();}catch(e){return null;}
+}
+async function apiDelete(path){
+  if(!API) return null;
+  try{const r=await fetch(API+path,{method:'DELETE'});return await r.json();}catch(e){return null;}
+}
+
+// localStorage fallback (works offline too)
 function ls(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}
 function lsSet(k,v){localStorage.setItem(k,JSON.stringify(v))}
 
@@ -879,6 +901,18 @@ buildPeopleList('all');buildClientList();
 // Auto-trigger identity verification on load
 setTimeout(()=>{if(!bioVerified)triggerBio('clockin');},800);
 
+// Sync data from database on load
+if(API){
+  syncFromAPI().then(()=>{
+    buildHistTable();buildTeamTable();buildAdminPage();buildReminders();buildNotif();
+    buildPeopleList('all');buildClientList();populateClientDropdowns();
+  });
+}
+
+// Pre-fill API URL in settings
+const savedApiUrl = localStorage.getItem('tq_api_url')||'';
+if(document.getElementById('apiUrlInput')) document.getElementById('apiUrlInput').value = savedApiUrl;
+
 /* ════════════════════════════════════════
    NAV
 ════════════════════════════════════════ */
@@ -892,6 +926,23 @@ function showPageM(id,el){PAGES.forEach(p=>document.getElementById('page-'+p).st
 function getClients(){return ls('tq_clients')||[];}
 function getWorkers(){return ls('tq_workers')||[];}
 function getSubs(){return ls('tq_submissions')||[];}
+
+// Sync from API to localStorage on load
+async function syncFromAPI(){
+  const workers = await apiGet('/api/workers');
+  if(workers&&workers.length){lsSet('tq_workers',workers);console.log('Workers synced:',workers.length);}
+  const clients = await apiGet('/api/clients');
+  if(clients&&clients.length){
+    // Convert radius field name
+    const converted = clients.map(c=>({...c,sites:(c.sites||[]).map(s=>({...s,r:s.radius||s.r||15}))}));
+    lsSet('tq_clients',converted);
+    // Force reseed flag so converted data is used
+    lsSet('tq_clients_v','api');
+    console.log('Clients synced:',converted.length);
+  }
+  const subs = await apiGet('/api/submissions');
+  if(subs&&subs.length){lsSet('tq_submissions',subs);console.log('Submissions synced:',subs.length);}
+}
 
 function populateClientDropdowns(){
   const clients=getClients();
@@ -1418,6 +1469,29 @@ function clearVoice(){voiceText='';document.getElementById('voiceTx').style.disp
 function submitAct(){
   if(!document.getElementById('clientSel').value||!document.getElementById('locSel').value){alert('Please select a client and location.');return;}
   if(!bioVerified&&MOD.faceid){triggerBio('submit');return;}
+  // Save submission to API
+  const sub = {
+    id: 'sub-'+Date.now(),
+    worker_id: currentUser?currentUser.id:'',
+    worker_name: currentUser?(currentUser.fname+' '+currentUser.lname):'Unknown',
+    client_name: document.getElementById('clientSel').options[document.getElementById('clientSel').selectedIndex]?.text||'',
+    site_name: document.getElementById('locSel').options[document.getElementById('locSel').selectedIndex]?.text||'',
+    task: document.getElementById('taskCat').value,
+    notes: document.getElementById('taskDesc').value,
+    auth_method: bioVerified?'Face ID/PIN':'None',
+    gps_in: document.getElementById('distVal').textContent||'—',
+    clock_in: document.getElementById('inT').textContent,
+    clock_out: document.getElementById('outT').textContent,
+    duration: document.getElementById('durT').textContent,
+    status: 'submitted',
+    date: new Date().toLocaleDateString('en-AU',{day:'numeric',month:'short'})
+  };
+  // Save locally
+  const subs = getSubs();
+  subs.unshift(sub);
+  lsSet('tq_submissions', subs);
+  // Save to database
+  apiPost('/api/submissions', sub).then(()=>console.log('Submission saved to DB'));
   document.getElementById('successOvl').style.display='flex';
 }
 function saveDraft(){const b=event.currentTarget;b.textContent='✅ Saved!';setTimeout(()=>b.textContent='💾 Save Draft',2000);}
@@ -1546,6 +1620,7 @@ function deletePerson(id){
   if(!confirm('Remove this person?'))return;
   const workers=getWorkers().filter(w=>w.id!==id);
   lsSet('tq_workers',workers);
+  apiDelete('/api/workers/'+id).then(()=>console.log('Worker deleted from DB'));
   buildPeopleList('all');
 }
 function savePerson(){
@@ -1570,8 +1645,11 @@ function savePerson(){
     workers.push(person);
   }
   lsSet('tq_workers',workers);
+  // Also save to database
+  apiPost('/api/workers', person).then(()=>console.log('Worker saved to DB'));
   closeModal('personModal');
   buildPeopleList('all');
+  populateClientDropdowns();
 }
 
 /* ════════════════════════════════════════
@@ -1651,6 +1729,8 @@ function saveClient(){
   if(editingClientId){const idx=clients.findIndex(c=>c.id===editingClientId);if(idx>-1)clients[idx]=client;}
   else{clients.push(client);}
   lsSet('tq_clients',clients);
+  // Also save to database
+  apiPost('/api/clients', client).then(()=>console.log('Client saved to DB'));
   closeModal('clientModal');
   buildClientList();
   populateClientDropdowns();
@@ -1658,6 +1738,7 @@ function saveClient(){
 function deleteClient(id){
   if(!confirm('Delete this client and all its sites?'))return;
   lsSet('tq_clients',getClients().filter(c=>c.id!==id));
+  apiDelete('/api/clients/'+id).then(()=>console.log('Client deleted from DB'));
   buildClientList();populateClientDropdowns();
 }
 
@@ -1694,6 +1775,15 @@ function showNotif(){document.getElementById('notifOvl').style.display='flex';}
 function setTab(el){document.querySelectorAll('.tabs .tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');}
 
 /* MISC */
+function saveApiUrl(){
+  const url=document.getElementById('apiUrlInput').value.trim().replace(/\/$/,'');
+  if(!url){alert('Please enter your Railway URL');return;}
+  localStorage.setItem('tq_api_url',url);
+  document.getElementById('apiStatus').textContent='Syncing…';
+  // Reload API config
+  location.reload();
+}
+
 function closeModal(id){document.getElementById(id).style.display='none';}
 function showToast(msg){const t=document.getElementById('csvToast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
 
